@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.tracejp.starnight.dao.ExamPaperDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.tracejp.starnight.entity.ExamPaperEntity" id="examPaperMap">
+        <result property="id" column="id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="name" column="name"/>
+        <result property="subjectId" column="subject_id"/>
+        <result property="paperType" column="paper_type"/>
+        <result property="gradeLevel" column="grade_level"/>
+        <result property="score" column="score"/>
+        <result property="questionCount" column="question_count"/>
+        <result property="suggestTime" column="suggest_time"/>
+        <result property="limitStartTime" column="limit_start_time"/>
+        <result property="limitEndTime" column="limit_end_time"/>
+        <result property="frameTextContentId" column="frame_text_content_id"/>
+        <result property="taskExamId" column="task_exam_id"/>
+    </resultMap>
+
+
+</mapper>
