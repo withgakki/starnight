@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 
 import com.tracejp.starnight.entity.UserTokenEntity;
 import com.tracejp.starnight.service.UserTokenService;
-import com.tracejp.starnight.controller.base.BaseController;
+import com.tracejp.starnight.controller.BaseController;
 import com.tracejp.starnight.entity.base.TableDataInfo;
 import com.tracejp.starnight.entity.base.AjaxResult;
 

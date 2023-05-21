@@ -8,7 +8,6 @@ public class StarnightApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(StarnightApplication.class, args);
-
     }
 
 }

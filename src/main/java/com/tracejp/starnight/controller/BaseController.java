@@ -1,4 +1,4 @@
-package com.tracejp.starnight.controller.base;
+package com.tracejp.starnight.controller;
 
 import java.beans.PropertyEditorSupport;
 import java.text.ParseException;
