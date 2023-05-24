@@ -1,20 +1,9 @@
 package com.tracejp.starnight.utils;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-import javax.servlet.ServletRequest;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
 import cn.hutool.core.convert.Convert;
+import com.alibaba.fastjson2.JSON;
 import com.tracejp.starnight.constants.Constants;
+import com.tracejp.starnight.entity.base.AjaxResult;
 import com.tracejp.starnight.entity.base.R;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
@@ -25,8 +14,20 @@ import org.springframework.util.LinkedCaseInsensitiveMap;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import com.alibaba.fastjson2.JSON;
 import reactor.core.publisher.Mono;
+
+import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 客户端工具类
@@ -172,6 +173,32 @@ public class ServletUtils {
             response.setContentType("application/json");
             response.setCharacterEncoding("utf-8");
             response.getWriter().print(string);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 将对象渲染到客户端
+     *
+     * @param response 渲染对象
+     */
+    public static void renderString(HttpServletResponse response, int code, String msg) {
+        renderString(response, code, msg, null);
+    }
+
+    /**
+     * 将对象渲染到客户端
+     *
+     * @param response 渲染对象
+     * @param content  待渲染的对象
+     */
+    public static void renderString(HttpServletResponse response, int code, String msg, Object content) {
+        try {
+            AjaxResult res = new AjaxResult(code, msg, content);
+            String resStr = JSON.toJSONString(res);
+            response.setContentType("application/json;charset=utf-8");
+            response.getWriter().write(resStr);
         } catch (IOException e) {
             e.printStackTrace();
         }

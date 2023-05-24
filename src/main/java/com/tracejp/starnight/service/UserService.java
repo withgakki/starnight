@@ -9,5 +9,14 @@ import com.tracejp.starnight.entity.UserEntity;
  */
 public interface UserService extends IService<UserEntity> {
 
+    /**
+     *
+     * @param account 账号（用户名 | 手机号）
+     * @return
+     */
+    UserEntity getByAccount(String account);
+
+
+
 }
 

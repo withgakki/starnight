@@ -1,5 +1,6 @@
 package com.tracejp.starnight.controller.global;
 
+import com.tracejp.starnight.controller.BaseController;
 import com.tracejp.starnight.entity.base.AjaxResult;
 import com.tracejp.starnight.exception.ServiceException;
 import com.tracejp.starnight.utils.StringUtils;
@@ -20,7 +21,7 @@ import java.util.Objects;
  * @author traceJP
  */
 @RestControllerAdvice
-public class GlobalExceptionController {
+public class GlobalExceptionController extends BaseController {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionController.class);
 
