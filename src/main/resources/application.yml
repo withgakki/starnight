@@ -52,3 +52,4 @@ starnight:
   security:
     ignores:
       - /api/user/login/**
+      - /api/user/logout/**

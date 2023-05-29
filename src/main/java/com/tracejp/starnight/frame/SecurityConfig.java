@@ -15,7 +15,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -43,14 +47,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        http
+                .csrf().disable()  // 禁用 csrf
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)  // 关闭默认 session 行为
+                .and().headers().frameOptions().disable()  // 跨域头检查禁用
+                .and().cors();  // 跨域头检查禁用
 
         // 白名单
         List<String> securityIgnoreUrls = configProperties.getIgnores();
 
         http
-                .addFilter(tokenAuthFilter(tokenHandler))// 普通请求 token 过滤器
+                .addFilter(tokenAuthFilter(tokenHandler))  // 普通请求 token 过滤器
                 .authorizeRequests()
                 .antMatchers(securityIgnoreUrls.toArray(new String[0])).permitAll()  // 白名单接口放行
                 .antMatchers("/api/admin/**").hasRole(RoleEnum.ADMIN.getName())  // admin 接口鉴权
@@ -75,6 +82,22 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
      */
     protected TokenAuthFilter tokenAuthFilter(TokenHandler tokenHandler) throws Exception {
         return new TokenAuthFilter(authenticationManagerBean(), tokenHandler);
+    }
+
+    /**
+     * Security 跨域配置
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        final CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setMaxAge(3600L);
+        configuration.setAllowedMethods(Collections.singletonList("*"));
+        configuration.setAllowedHeaders(Collections.singletonList("*"));
+        configuration.setAllowedOriginPatterns(Collections.singletonList("*"));
+        configuration.setAllowCredentials(true);
+        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/**", configuration);
+        return source;
     }
 
 }
