@@ -38,11 +38,16 @@ public class LoginAuthProvider implements AuthenticationProvider {
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         String username = (String) authentication.getPrincipal();
         String password = (String) authentication.getCredentials();
+        RoleEnum role = (RoleEnum) authentication.getDetails();
         UserEntity user = userService.getByAccount(username);
 
         // 登录失败
         if (user == null) {
             throw new UsernameNotFoundException("用户名或密码错误");
+        }
+
+        if (user.getRole() != role.getCode()) {
+            throw new BadCredentialsException("用户名或密码错误");
         }
 
         boolean result = SecurityUtils.matchesPassword(password, user.getPassword());
@@ -67,7 +72,7 @@ public class LoginAuthProvider implements AuthenticationProvider {
     /**
      * 构建 security 用户实体
      */
-    public static UsernamePasswordAuthenticationToken buildToken(UserEntity user) {
+    private UsernamePasswordAuthenticationToken buildToken(UserEntity user) {
         List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
         grantedAuthorities.add(new SimpleGrantedAuthority(RoleEnum.fromCode(user.getRole()).getRoleName()));
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(

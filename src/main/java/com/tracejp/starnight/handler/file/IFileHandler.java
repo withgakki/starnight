@@ -1,5 +1,7 @@
 package com.tracejp.starnight.handler.file;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.Map;
 
 /**
@@ -9,6 +11,13 @@ import java.util.Map;
  * @since 2023/5/2 13:16
  */
 public interface IFileHandler {
+
+    /**
+     * 文件上传接口
+     * @param file 文件
+     * @return 文件访问地址
+     */
+    String uploadFile(MultipartFile file) throws Exception;
 
     /**
      * 获取文件上传签名

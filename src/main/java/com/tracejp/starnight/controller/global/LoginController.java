@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 
 /**
  * <p>  <p/>
@@ -34,7 +35,7 @@ public class LoginController extends BaseController {
     private TokenHandler tokenHandler;
 
     @PostMapping("/login")
-    public AjaxResult login(@RequestBody AccountLoginParam loginBody) {
+    public AjaxResult login(@Valid @RequestBody AccountLoginParam loginBody) {
         Authentication authenticate = authorizationManager.authenticate(
                 loginBody.getUsernamePasswordAuthenticationToken()
         );

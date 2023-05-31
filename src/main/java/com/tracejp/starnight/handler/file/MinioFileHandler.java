@@ -1,18 +1,25 @@
 package com.tracejp.starnight.handler.file;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.io.file.FileNameUtil;
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.tracejp.starnight.frame.properties.FileConfigProperties;
+import com.tracejp.starnight.utils.MimeTypeUtils;
+import com.tracejp.starnight.utils.StringUtils;
+import com.tracejp.starnight.utils.UUIDUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
 import java.net.URL;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * <p> minio 实现类 <p/>
@@ -34,6 +41,22 @@ public class MinioFileHandler implements IFileHandler {
 
 
     @Override
+    public String uploadFile(MultipartFile file) throws Exception {
+        // 时间 + 随机数 + 后缀
+        String suffix = FileNameUtil.getSuffix(file.getOriginalFilename());
+        if (StringUtils.isEmpty(suffix)) {
+            suffix = MimeTypeUtils.getExtension(Objects.requireNonNull(file.getContentType()));
+        }
+        String fileKey = DateUtil.format(new Date(), "yyyyMM")
+                + "_" + UUIDUtils.fastUUID().toString(true)
+                + "." + suffix;
+        InputStream inputStream = file.getInputStream();
+        fileClient.putObject(configProperties.getBucketName(), fileKey, inputStream, null);
+        inputStream.close();
+        return getFileUrl(fileKey, configProperties.getBucketName());
+    }
+
+    @Override
     public Map<String, String> uploadPreSign(String fileKey, Map<String, String> params) {
         Date currentDate = new Date();
         Date expireDate = DateUtil.offsetMillisecond(currentDate, PRE_SIGN_URL_EXPIRE);
@@ -45,6 +68,10 @@ public class MinioFileHandler implements IFileHandler {
         }
         URL url = fileClient.generatePresignedUrl(request);
         return Collections.singletonMap("url", url.toString());
+    }
+
+    private String getFileUrl(String fileKey, String bucketName) {
+        return configProperties.getUrl() + "/" + bucketName + "/" + fileKey;
     }
 
 }
