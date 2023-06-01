@@ -3,6 +3,9 @@ package com.tracejp.starnight.dao;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.tracejp.starnight.entity.UserEntity;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * @author traceJP
@@ -10,5 +13,9 @@ import org.apache.ibatis.annotations.Mapper;
  */
 @Mapper
 public interface UserDao extends BaseMapper<UserEntity> {
-	
+
+    void changeStatus(@Param("id") Long id);
+
+    List<UserEntity> listPage(UserEntity user);
+
 }

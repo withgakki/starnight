@@ -19,6 +19,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -61,6 +62,8 @@ public class LoginAuthProvider implements AuthenticationProvider {
         }
 
         // 登录成功
+        user.setLastActiveTime(new Date());
+        userService.updateById(user);
         return buildToken(user);
     }
 

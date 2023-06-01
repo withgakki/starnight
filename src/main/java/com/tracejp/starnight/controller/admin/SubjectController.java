@@ -1,16 +1,14 @@
 package com.tracejp.starnight.controller.admin;
 
-import java.util.List;
-
+import com.tracejp.starnight.controller.BaseController;
+import com.tracejp.starnight.entity.SubjectEntity;
+import com.tracejp.starnight.entity.base.AjaxResult;
+import com.tracejp.starnight.entity.base.TableDataInfo;
+import com.tracejp.starnight.service.SubjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 
-import com.tracejp.starnight.entity.SubjectEntity;
-import com.tracejp.starnight.service.SubjectService;
-import com.tracejp.starnight.controller.BaseController;
-import com.tracejp.starnight.entity.base.TableDataInfo;
-import com.tracejp.starnight.entity.base.AjaxResult;
+import java.util.List;
 
 
 /**
@@ -18,7 +16,7 @@ import com.tracejp.starnight.entity.base.AjaxResult;
  * @since 2023-05-20 23:19:38
  */
 @RestController
-@RequestMapping("admin/subject")
+@RequestMapping("api/admin/subject")
 public class SubjectController extends BaseController {
 
     @Autowired
@@ -30,9 +28,17 @@ public class SubjectController extends BaseController {
     @GetMapping("/list")
     public TableDataInfo list(SubjectEntity subject) {
         startPage();
-        QueryWrapper<SubjectEntity> queryWrapper = new QueryWrapper<>(subject);
-        List<SubjectEntity> list = subjectService.list(queryWrapper);
+        List<SubjectEntity> list = subjectService.listPage(subject);
         return getDataTable(list);
+    }
+
+    /**
+     * 列表所有
+     */
+    @GetMapping("/list/all")
+    public AjaxResult listAll() {
+        List<SubjectEntity> list = subjectService.list();
+        return success(list);
     }
 
     /**
@@ -40,7 +46,7 @@ public class SubjectController extends BaseController {
      */
     @GetMapping("/{id}")
     public AjaxResult info(@PathVariable Long id) {
-		SubjectEntity subject = subjectService.getById(id);
+        SubjectEntity subject = subjectService.getById(id);
         return success(subject);
     }
 
@@ -49,7 +55,7 @@ public class SubjectController extends BaseController {
      */
     @PostMapping
     public AjaxResult save(@RequestBody SubjectEntity subject) {
-		subjectService.save(subject);
+        subjectService.save(subject);
         return success();
     }
 
@@ -58,7 +64,7 @@ public class SubjectController extends BaseController {
      */
     @PutMapping
     public AjaxResult update(@RequestBody SubjectEntity subject) {
-		subjectService.updateById(subject);
+        subjectService.updateById(subject);
         return success();
     }
 
@@ -67,7 +73,7 @@ public class SubjectController extends BaseController {
      */
     @DeleteMapping
     public AjaxResult delete(@RequestBody List<Long> ids) {
-		subjectService.removeByIds(ids);
+        subjectService.removeByIds(ids);
         return success();
     }
 

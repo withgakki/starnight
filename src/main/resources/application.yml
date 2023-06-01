@@ -30,8 +30,20 @@ spring:
 
 # Mybatis 配置
 mybatis:
-  typeAliasesPackage: com.tracejp.starnight
+  typeAliasesPackage: com.tracejp.starnight.entity
   mapperLocations: classpath:mapper/*.xml
+  # 日志打印
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# Mybatis-Plus 配置
+mybatis-plus:
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: delFlag
+      logic-delete-value: 1
+      logic-not-delete-value: 0
 
 # star-night 配置
 starnight:

@@ -25,5 +25,27 @@
         <result property="wxOpenId" column="wx_open_id"/>
     </resultMap>
 
+    <select id="listPage" parameterType="com.tracejp.starnight.entity.UserEntity" resultMap="userMap">
+        SELECT * FROM `t_user`
+        <where>
+            <if test="userName != null and userName != ''">
+                AND `user_name` LIKE concat('%', #{userName}, '%')
+            </if>
+            <if test="realName != null and realName != ''">
+                AND `real_name` LIKE concat('%', #{realName}, '%')
+            </if>
+            <if test="phone != null and phone != ''">
+                AND phone LIKE concat('%', #{phone}, '%')
+            </if>
+            AND `role` = #{role}
+            AND `del_flag` = 0
+        </where>
+    </select>
+
+    <update id="changeStatus">
+        UPDATE `t_user`
+        SET status = IF(status = 1, 2, 1), `update_time` = NOW()
+        WHERE `id` = #{id}
+    </update>
 
 </mapper>

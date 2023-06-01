@@ -1,16 +1,19 @@
 package com.tracejp.starnight.controller.admin;
 
-import java.util.List;
-
+import com.tracejp.starnight.controller.BaseController;
+import com.tracejp.starnight.entity.UserEntity;
+import com.tracejp.starnight.entity.base.AjaxResult;
+import com.tracejp.starnight.entity.base.TableDataInfo;
+import com.tracejp.starnight.entity.dto.UserDto;
+import com.tracejp.starnight.entity.param.UserEditParam;
+import com.tracejp.starnight.service.UserService;
+import com.tracejp.starnight.utils.UUIDUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 
-import com.tracejp.starnight.entity.UserEntity;
-import com.tracejp.starnight.service.UserService;
-import com.tracejp.starnight.controller.BaseController;
-import com.tracejp.starnight.entity.base.TableDataInfo;
-import com.tracejp.starnight.entity.base.AjaxResult;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
@@ -30,9 +33,13 @@ public class UserController extends BaseController {
     @GetMapping("/list")
     public TableDataInfo list(UserEntity user) {
         startPage();
-        QueryWrapper<UserEntity> queryWrapper = new QueryWrapper<>(user);
-        List<UserEntity> list = userService.list(queryWrapper);
-        return getDataTable(list);
+        List<UserEntity> list = userService.listPage(user);
+        List<UserDto> collect = list.stream()
+                .map(item -> (UserDto) new UserDto().convertFrom(item))
+                .collect(Collectors.toList());
+        TableDataInfo dataTable = getDataTable(list);
+        dataTable.setRows(collect);
+        return dataTable;
     }
 
     /**
@@ -40,16 +47,19 @@ public class UserController extends BaseController {
      */
     @GetMapping("/{id}")
     public AjaxResult info(@PathVariable Long id) {
-		UserEntity user = userService.getById(id);
-        return success(user);
+        UserEntity user = userService.getById(id);
+        return success(new UserDto().convertFrom(user));
     }
 
     /**
      * 保存
      */
     @PostMapping
-    public AjaxResult save(@RequestBody UserEntity user) {
-		userService.save(user);
+    public AjaxResult save(@RequestBody UserEditParam user) {
+        UserEntity userEntity = user.convertTo();
+        userEntity.setUserUuid(UUIDUtils.fastUUID().toString());
+        userEntity.setDelFlag(false);
+        userService.save(userEntity);
         return success();
     }
 
@@ -57,17 +67,28 @@ public class UserController extends BaseController {
      * 修改
      */
     @PutMapping
-    public AjaxResult update(@RequestBody UserEntity user) {
-		userService.updateById(user);
+    public AjaxResult update(@RequestBody UserEditParam user) {
+        UserEntity userEntity = user.convertTo();
+        userEntity.setUpdateTime(new Date());
+        userService.updateById(userEntity);
         return success();
     }
 
     /**
      * 删除
      */
-    @DeleteMapping
-    public AjaxResult delete(@RequestBody List<Long> ids) {
-		userService.removeByIds(ids);
+    @DeleteMapping("/{ids}")
+    public AjaxResult delete(@PathVariable List<Long> ids) {
+        userService.removeByIds(ids);
+        return success();
+    }
+
+    /**
+     * 改变用户状态
+     */
+    @PutMapping("/status/{id}")
+    public AjaxResult changeStatus(@PathVariable Long id) {
+        userService.changeStatus(id);
         return success();
     }
 
