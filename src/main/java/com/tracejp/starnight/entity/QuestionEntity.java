@@ -4,7 +4,10 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.util.Date;
+import java.util.List;
 
+import com.tracejp.starnight.entity.enums.QuestionTypeEnum;
+import com.tracejp.starnight.utils.ArrayStringUtils;
 import lombok.Data;
 
 /**
@@ -77,5 +80,18 @@ public class QuestionEntity {
 	 * 状态
 	 */
 	private Integer status;
+
+	/**
+	 * 根据 Vo 和 题目类型设置答案
+	 */
+	public void setCorrectFromVo(String correct, List<String> correctArray) {
+		int type = this.getQuestionType();
+		if (type == QuestionTypeEnum.MultipleChoice.getCode()) {
+			String correctJoin = ArrayStringUtils.contentToString(correctArray);
+			this.setCorrect(correctJoin);
+		} else {
+			this.setCorrect(correct);
+		}
+	}
 
 }

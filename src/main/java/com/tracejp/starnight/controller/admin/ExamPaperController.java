@@ -1,16 +1,14 @@
 package com.tracejp.starnight.controller.admin;
 
-import java.util.List;
-
+import com.tracejp.starnight.controller.BaseController;
+import com.tracejp.starnight.entity.ExamPaperEntity;
+import com.tracejp.starnight.entity.base.AjaxResult;
+import com.tracejp.starnight.entity.base.TableDataInfo;
+import com.tracejp.starnight.service.ExamPaperService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 
-import com.tracejp.starnight.entity.ExamPaperEntity;
-import com.tracejp.starnight.service.ExamPaperService;
-import com.tracejp.starnight.controller.BaseController;
-import com.tracejp.starnight.entity.base.TableDataInfo;
-import com.tracejp.starnight.entity.base.AjaxResult;
+import java.util.List;
 
 
 /**
@@ -18,7 +16,7 @@ import com.tracejp.starnight.entity.base.AjaxResult;
  * @since 2023-05-20 23:19:38
  */
 @RestController
-@RequestMapping("admin/exampaper")
+@RequestMapping("/api/admin/exampaper")
 public class ExamPaperController extends BaseController {
 
     @Autowired
@@ -30,8 +28,7 @@ public class ExamPaperController extends BaseController {
     @GetMapping("/list")
     public TableDataInfo list(ExamPaperEntity examPaper) {
         startPage();
-        QueryWrapper<ExamPaperEntity> queryWrapper = new QueryWrapper<>(examPaper);
-        List<ExamPaperEntity> list = examPaperService.list(queryWrapper);
+        List<ExamPaperEntity> list = examPaperService.listPage(examPaper);
         return getDataTable(list);
     }
 
@@ -40,7 +37,7 @@ public class ExamPaperController extends BaseController {
      */
     @GetMapping("/{id}")
     public AjaxResult info(@PathVariable Long id) {
-		ExamPaperEntity examPaper = examPaperService.getById(id);
+        ExamPaperEntity examPaper = examPaperService.getById(id);
         return success(examPaper);
     }
 
@@ -49,7 +46,7 @@ public class ExamPaperController extends BaseController {
      */
     @PostMapping
     public AjaxResult save(@RequestBody ExamPaperEntity examPaper) {
-		examPaperService.save(examPaper);
+        examPaperService.save(examPaper);
         return success();
     }
 
@@ -58,16 +55,16 @@ public class ExamPaperController extends BaseController {
      */
     @PutMapping
     public AjaxResult update(@RequestBody ExamPaperEntity examPaper) {
-		examPaperService.updateById(examPaper);
+        examPaperService.updateById(examPaper);
         return success();
     }
 
     /**
      * 删除
      */
-    @DeleteMapping
-    public AjaxResult delete(@RequestBody List<Long> ids) {
-		examPaperService.removeByIds(ids);
+    @DeleteMapping("/{ids}")
+    public AjaxResult delete(@PathVariable List<Long> ids) {
+        examPaperService.removeByIds(ids);
         return success();
     }
 

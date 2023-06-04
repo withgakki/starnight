@@ -16,5 +16,10 @@ public interface SubjectService extends IService<SubjectEntity> {
      */
     List<SubjectEntity> listPage(SubjectEntity subject);
 
+    /**
+     * 根据 id 获取年级
+     */
+    Integer getLevelById(Long subjectId);
+
 }
 

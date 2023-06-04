@@ -58,7 +58,6 @@ public class UserController extends BaseController {
     public AjaxResult save(@RequestBody UserEditParam user) {
         UserEntity userEntity = user.convertTo();
         userEntity.setUserUuid(UUIDUtils.fastUUID().toString());
-        userEntity.setDelFlag(false);
         userService.save(userEntity);
         return success();
     }

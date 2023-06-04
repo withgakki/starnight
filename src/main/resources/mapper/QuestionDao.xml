@@ -19,5 +19,23 @@
         <result property="status" column="status"/>
     </resultMap>
 
+    <select id="listPage" resultMap="questionMap">
+        SELECT * FROM `t_question`
+        <where>
+            <if test="id != null and id != ''">
+                AND `id` = #{id}
+            </if>
+            <if test="questionType != null and questionType != ''">
+                AND `question_type` = #{questionType}
+            </if>
+            <if test="gradeLevel != null and gradeLevel != ''">
+                AND `grade_level` = #{gradeLevel}
+            </if>
+            <if test="subjectId != null and subjectId != ''">
+                AND `subject_id` = #{subjectId}
+            </if>
+            AND `del_flag` = 0
+        </where>
+    </select>
 
 </mapper>

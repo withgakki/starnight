@@ -22,5 +22,20 @@
         <result property="taskExamId" column="task_exam_id"/>
     </resultMap>
 
+    <select id="listPage" resultMap="examPaperMap">
+        SELECT * FROM `t_exam_paper`
+        <where>
+            <if test="name != null and name != ''">
+                AND `name` LIKE concat('%', #{name}, '%')
+            </if>
+            <if test="level != null and level != ''">
+                AND `level` = #{level}
+            </if>
+            <if test="subjectId != null and subjectId != ''">
+                AND `subjectId` = #{subjectId}
+            </if>
+            AND `del_flag` = 0
+        </where>
+    </select>
 
 </mapper>

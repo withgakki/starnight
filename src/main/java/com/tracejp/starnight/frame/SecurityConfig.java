@@ -59,6 +59,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .addFilter(tokenAuthFilter(tokenHandler))  // 普通请求 token 过滤器
                 .authorizeRequests()
+                .antMatchers("/**").permitAll()  // TODO 测试放行
                 .antMatchers(securityIgnoreUrls.toArray(new String[0])).permitAll()  // 白名单接口放行
                 .antMatchers("/api/admin/**").hasRole(RoleEnum.ADMIN.getName())  // admin 接口鉴权
                 .antMatchers("/api/student/**").hasRole(RoleEnum.STUDENT.getName())  // student 接口鉴权

@@ -1,5 +1,7 @@
 package com.tracejp.starnight.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -24,6 +26,14 @@ public class SubjectServiceImpl extends ServiceImpl<SubjectDao, SubjectEntity> i
     @Override
     public List<SubjectEntity> listPage(SubjectEntity subject) {
         return subjectDao.listPage(subject);
+    }
+
+    @Override
+    public Integer getLevelById(Long subjectId) {
+        LambdaQueryWrapper<SubjectEntity> wrapper = Wrappers.lambdaQuery(SubjectEntity.class)
+                .eq(SubjectEntity::getId, subjectId)
+                .select(SubjectEntity::getLevel);
+        return getOne(wrapper).getLevel();
     }
 
 }

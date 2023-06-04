@@ -1,16 +1,16 @@
 package com.tracejp.starnight.controller.admin;
 
-import java.util.List;
-
+import com.tracejp.starnight.controller.BaseController;
+import com.tracejp.starnight.entity.QuestionEntity;
+import com.tracejp.starnight.entity.base.AjaxResult;
+import com.tracejp.starnight.entity.base.TableDataInfo;
+import com.tracejp.starnight.entity.vo.QuestionVo;
+import com.tracejp.starnight.service.QuestionService;
+import com.tracejp.starnight.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 
-import com.tracejp.starnight.entity.QuestionEntity;
-import com.tracejp.starnight.service.QuestionService;
-import com.tracejp.starnight.controller.BaseController;
-import com.tracejp.starnight.entity.base.TableDataInfo;
-import com.tracejp.starnight.entity.base.AjaxResult;
+import java.util.List;
 
 
 /**
@@ -18,7 +18,7 @@ import com.tracejp.starnight.entity.base.AjaxResult;
  * @since 2023-05-20 23:19:38
  */
 @RestController
-@RequestMapping("admin/question")
+@RequestMapping("/api/admin/question")
 public class QuestionController extends BaseController {
 
     @Autowired
@@ -30,8 +30,7 @@ public class QuestionController extends BaseController {
     @GetMapping("/list")
     public TableDataInfo list(QuestionEntity question) {
         startPage();
-        QueryWrapper<QuestionEntity> queryWrapper = new QueryWrapper<>(question);
-        List<QuestionEntity> list = questionService.list(queryWrapper);
+        List<QuestionEntity> list = questionService.listPage(question);
         return getDataTable(list);
     }
 
@@ -40,7 +39,7 @@ public class QuestionController extends BaseController {
      */
     @GetMapping("/{id}")
     public AjaxResult info(@PathVariable Long id) {
-		QuestionEntity question = questionService.getById(id);
+        QuestionVo question = questionService.getQuestionVo(id);
         return success(question);
     }
 
@@ -48,8 +47,9 @@ public class QuestionController extends BaseController {
      * 保存
      */
     @PostMapping
-    public AjaxResult save(@RequestBody QuestionEntity question) {
-		questionService.save(question);
+    public AjaxResult save(@RequestBody QuestionVo question) {
+        question.validQuestionVo();
+        questionService.saveQuestionVo(question, SecurityUtils.getUserId());
         return success();
     }
 
@@ -57,17 +57,17 @@ public class QuestionController extends BaseController {
      * 修改
      */
     @PutMapping
-    public AjaxResult update(@RequestBody QuestionEntity question) {
-		questionService.updateById(question);
+    public AjaxResult update(@RequestBody QuestionVo question) {
+        questionService.updateQuestionVo(question);
         return success();
     }
 
     /**
      * 删除
      */
-    @DeleteMapping
-    public AjaxResult delete(@RequestBody List<Long> ids) {
-		questionService.removeByIds(ids);
+    @DeleteMapping("/{ids}")
+    public AjaxResult delete(@PathVariable List<Long> ids) {
+        questionService.removeByIds(ids);
         return success();
     }
 

@@ -65,8 +65,8 @@ public class ExamPaperQuestionAnswerController extends BaseController {
     /**
      * 删除
      */
-    @DeleteMapping
-    public AjaxResult delete(@RequestBody List<Long> ids) {
+    @DeleteMapping("/{ids}")
+    public AjaxResult delete(@PathVariable List<Long> ids) {
 		examPaperQuestionAnswerService.removeByIds(ids);
         return success();
     }
