@@ -11,9 +11,9 @@ import java.util.Map;
  */
 public enum ExamPaperTypeEnum {
 
-    Fixed(1, "固定试卷"),
-    TimeLimit(4, "时段试卷"),
-    Task(6, "任务试卷");
+    FIXED(1, "固定试卷"),
+    TIME_LIMIT(4, "时段试卷"),
+    TASK(6, "任务试卷");
 
     int code;
     String name;

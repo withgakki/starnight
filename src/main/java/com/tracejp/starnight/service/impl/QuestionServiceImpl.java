@@ -55,6 +55,10 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionDao, QuestionEntity
 
     @Override
     public QuestionVo getQuestionVo(QuestionEntity question) {
+        if (question == null) {
+            throw new ServiceException("题目不存在");
+        }
+
         // 基本信息处理
         QuestionVo questionVo = new QuestionVo();
         BeanUtils.copyProperties(question, questionVo);

@@ -5,9 +5,9 @@ import lombok.Data;
 @Data
 public class TaskItemAnswerObject {
 
-    private Integer examPaperId;
+    private Long examPaperId;
 
-    private Integer examPaperAnswerId;
+    private Long examPaperAnswerId;
 
     private Integer status;
 

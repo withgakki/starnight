@@ -4,7 +4,9 @@ import com.tracejp.starnight.controller.BaseController;
 import com.tracejp.starnight.entity.ExamPaperEntity;
 import com.tracejp.starnight.entity.base.AjaxResult;
 import com.tracejp.starnight.entity.base.TableDataInfo;
+import com.tracejp.starnight.entity.vo.ExamPaperVo;
 import com.tracejp.starnight.service.ExamPaperService;
+import com.tracejp.starnight.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,11 +35,21 @@ public class ExamPaperController extends BaseController {
     }
 
     /**
+     * 列表任务试卷
+     */
+    @GetMapping("/list/taskexampaper")
+    public TableDataInfo listByTaskExamPaper(ExamPaperEntity examPaper) {
+        startPage();
+        List<ExamPaperEntity> list = examPaperService.listTaskExamPaperPage(examPaper);
+        return getDataTable(list);
+    }
+
+    /**
      * 信息
      */
     @GetMapping("/{id}")
     public AjaxResult info(@PathVariable Long id) {
-        ExamPaperEntity examPaper = examPaperService.getById(id);
+        ExamPaperVo examPaper = examPaperService.getExamPaperVo(id);
         return success(examPaper);
     }
 
@@ -45,8 +57,8 @@ public class ExamPaperController extends BaseController {
      * 保存
      */
     @PostMapping
-    public AjaxResult save(@RequestBody ExamPaperEntity examPaper) {
-        examPaperService.save(examPaper);
+    public AjaxResult saveExamPaperVo(@RequestBody ExamPaperVo examPaper) {
+        examPaperService.saveExamPaperVo(examPaper, 2L);  // TODO SecurityUtils.getUserId()
         return success();
     }
 
@@ -54,8 +66,8 @@ public class ExamPaperController extends BaseController {
      * 修改
      */
     @PutMapping
-    public AjaxResult update(@RequestBody ExamPaperEntity examPaper) {
-        examPaperService.updateById(examPaper);
+    public AjaxResult update(@RequestBody ExamPaperVo examPaper) {
+        examPaperService.updateExamPaperVo(examPaper);
         return success();
     }
 

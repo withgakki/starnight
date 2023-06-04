@@ -15,4 +15,6 @@ public interface ExamPaperDao extends BaseMapper<ExamPaperEntity> {
 
     List<ExamPaperEntity> listPage(ExamPaperEntity examPaper);
 
+    List<ExamPaperEntity> listTaskExamPaperPage(ExamPaperEntity examPaper);
+
 }

@@ -20,21 +20,6 @@ public class ExamPaperVo {
     private Long id;
 
     /**
-     * 创建时间
-     */
-    private Date createTime;
-
-    /**
-     * 创建者id
-     */
-    private Long createBy;
-
-    /**
-     * 删除标志位
-     */
-    private Boolean delFlag;
-
-    /**
      * 试卷名称
      */
     private String name;
@@ -57,7 +42,7 @@ public class ExamPaperVo {
     /**
      * 试卷总分
      */
-    private Integer score;
+    private String score;
 
     /**
      * 题目数量
@@ -85,7 +70,7 @@ public class ExamPaperVo {
     private Long taskExamId;
 
     /**
-     * 试卷题目列表
+     * 试卷列表
      */
     private List<ExamPaperTitleItemVo> titleItems;
 
