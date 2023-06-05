@@ -3,7 +3,7 @@ package com.tracejp.starnight.entity.po;
 import lombok.Data;
 
 @Data
-public class TaskItemAnswerObject {
+public class TaskItemAnswerPo {
 
     private Long examPaperId;
 

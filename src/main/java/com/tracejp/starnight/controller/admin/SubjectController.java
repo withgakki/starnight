@@ -16,7 +16,7 @@ import java.util.List;
  * @since 2023-05-20 23:19:38
  */
 @RestController
-@RequestMapping("api/admin/subject")
+@RequestMapping("/api/admin/subject")
 public class SubjectController extends BaseController {
 
     @Autowired

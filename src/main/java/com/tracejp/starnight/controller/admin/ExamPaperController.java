@@ -58,7 +58,7 @@ public class ExamPaperController extends BaseController {
      */
     @PostMapping
     public AjaxResult saveExamPaperVo(@RequestBody ExamPaperVo examPaper) {
-        examPaperService.saveExamPaperVo(examPaper, 2L);  // TODO SecurityUtils.getUserId()
+        examPaperService.saveExamPaperVo(examPaper, SecurityUtils.getUserId());
         return success();
     }
 

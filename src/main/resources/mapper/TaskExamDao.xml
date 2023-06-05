@@ -15,5 +15,14 @@
         <result property="createUserName" column="create_user_name"/>
     </resultMap>
 
+    <select id="listPage" resultMap="taskExamMap">
+        SELECT * FROM `t_task_exam`
+        <where>
+            <if test="gradeLevel != null and gradeLevel != ''">
+                AND `grade_level` = #{gradeLevel}
+            </if>
+            AND `del_flag` = 0
+        </where>
+    </select>
 
 </mapper>

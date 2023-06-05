@@ -37,5 +37,10 @@ public interface ExamPaperService extends IService<ExamPaperEntity> {
      */
     void updateExamPaperVo(ExamPaperVo examPaper);
 
+    /**
+     * 修改任务试卷关联
+     */
+    void updateTaskPaperRelation(Long taskId, List<ExamPaperEntity> examPaperItems);
+
 }
 

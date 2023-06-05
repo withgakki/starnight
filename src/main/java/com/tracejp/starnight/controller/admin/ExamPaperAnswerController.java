@@ -18,7 +18,7 @@ import com.tracejp.starnight.entity.base.AjaxResult;
  * @since 2023-05-20 23:19:38
  */
 @RestController
-@RequestMapping("admin/exampaperanswer")
+@RequestMapping("/api/admin/exampaperanswer")
 public class ExamPaperAnswerController extends BaseController {
 
     @Autowired
@@ -30,45 +30,8 @@ public class ExamPaperAnswerController extends BaseController {
     @GetMapping("/list")
     public TableDataInfo list(ExamPaperAnswerEntity examPaperAnswer) {
         startPage();
-        QueryWrapper<ExamPaperAnswerEntity> queryWrapper = new QueryWrapper<>(examPaperAnswer);
-        List<ExamPaperAnswerEntity> list = examPaperAnswerService.list(queryWrapper);
+        List<ExamPaperAnswerEntity> list = examPaperAnswerService.listPage(examPaperAnswer);
         return getDataTable(list);
-    }
-
-    /**
-     * 信息
-     */
-    @GetMapping("/{id}")
-    public AjaxResult info(@PathVariable Long id) {
-		ExamPaperAnswerEntity examPaperAnswer = examPaperAnswerService.getById(id);
-        return success(examPaperAnswer);
-    }
-
-    /**
-     * 保存
-     */
-    @PostMapping
-    public AjaxResult save(@RequestBody ExamPaperAnswerEntity examPaperAnswer) {
-		examPaperAnswerService.save(examPaperAnswer);
-        return success();
-    }
-
-    /**
-     * 修改
-     */
-    @PutMapping
-    public AjaxResult update(@RequestBody ExamPaperAnswerEntity examPaperAnswer) {
-		examPaperAnswerService.updateById(examPaperAnswer);
-        return success();
-    }
-
-    /**
-     * 删除
-     */
-    @DeleteMapping("/{ids}")
-    public AjaxResult delete(@PathVariable List<Long> ids) {
-		examPaperAnswerService.removeByIds(ids);
-        return success();
     }
 
 }

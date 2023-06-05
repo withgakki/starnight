@@ -47,7 +47,7 @@ public class TaskExamEntity {
 	private String title;
 
 	/**
-	 * 级别
+	 * 年级
 	 */
 	private Integer gradeLevel;
 

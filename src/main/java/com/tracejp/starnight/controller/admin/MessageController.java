@@ -18,7 +18,7 @@ import com.tracejp.starnight.entity.base.AjaxResult;
  * @since 2023-05-20 23:19:38
  */
 @RestController
-@RequestMapping("admin/message")
+@RequestMapping("/api/admin/message")
 public class MessageController extends BaseController {
 
     @Autowired

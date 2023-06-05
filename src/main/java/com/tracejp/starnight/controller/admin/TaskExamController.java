@@ -1,16 +1,17 @@
 package com.tracejp.starnight.controller.admin;
 
-import java.util.List;
-
+import com.tracejp.starnight.controller.BaseController;
+import com.tracejp.starnight.entity.TaskExamEntity;
+import com.tracejp.starnight.entity.UserEntity;
+import com.tracejp.starnight.entity.base.AjaxResult;
+import com.tracejp.starnight.entity.base.TableDataInfo;
+import com.tracejp.starnight.entity.vo.TaskExamVo;
+import com.tracejp.starnight.service.TaskExamService;
+import com.tracejp.starnight.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 
-import com.tracejp.starnight.entity.TaskExamEntity;
-import com.tracejp.starnight.service.TaskExamService;
-import com.tracejp.starnight.controller.BaseController;
-import com.tracejp.starnight.entity.base.TableDataInfo;
-import com.tracejp.starnight.entity.base.AjaxResult;
+import java.util.List;
 
 
 /**
@@ -18,7 +19,7 @@ import com.tracejp.starnight.entity.base.AjaxResult;
  * @since 2023-05-20 23:19:38
  */
 @RestController
-@RequestMapping("admin/taskexam")
+@RequestMapping("/api/admin/taskexam")
 public class TaskExamController extends BaseController {
 
     @Autowired
@@ -30,8 +31,7 @@ public class TaskExamController extends BaseController {
     @GetMapping("/list")
     public TableDataInfo list(TaskExamEntity taskExam) {
         startPage();
-        QueryWrapper<TaskExamEntity> queryWrapper = new QueryWrapper<>(taskExam);
-        List<TaskExamEntity> list = taskExamService.list(queryWrapper);
+        List<TaskExamEntity> list = taskExamService.listPage(taskExam);
         return getDataTable(list);
     }
 
@@ -40,7 +40,7 @@ public class TaskExamController extends BaseController {
      */
     @GetMapping("/{id}")
     public AjaxResult info(@PathVariable Long id) {
-		TaskExamEntity taskExam = taskExamService.getById(id);
+        TaskExamVo taskExam = taskExamService.getTaskExamVo(id);
         return success(taskExam);
     }
 
@@ -48,8 +48,8 @@ public class TaskExamController extends BaseController {
      * 保存
      */
     @PostMapping
-    public AjaxResult save(@RequestBody TaskExamEntity taskExam) {
-		taskExamService.save(taskExam);
+    public AjaxResult save(@RequestBody TaskExamVo taskExam) {
+        taskExamService.saveTaskExamVo(taskExam, new UserEntity());  // SecurityUtils.getLoginUser().getUser()
         return success();
     }
 
@@ -57,8 +57,8 @@ public class TaskExamController extends BaseController {
      * 修改
      */
     @PutMapping
-    public AjaxResult update(@RequestBody TaskExamEntity taskExam) {
-		taskExamService.updateById(taskExam);
+    public AjaxResult update(@RequestBody TaskExamVo taskExam) {
+        taskExamService.updateTaskExamVo(taskExam);
         return success();
     }
 
@@ -67,7 +67,7 @@ public class TaskExamController extends BaseController {
      */
     @DeleteMapping("/{ids}")
     public AjaxResult delete(@PathVariable List<Long> ids) {
-		taskExamService.removeByIds(ids);
+        taskExamService.removeTaskByIds(ids);
         return success();
     }
 

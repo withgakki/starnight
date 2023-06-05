@@ -1,6 +1,5 @@
 package com.tracejp.starnight.service.impl;
 
-import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tracejp.starnight.dao.ExamPaperDao;
 import com.tracejp.starnight.entity.ExamPaperEntity;
@@ -76,8 +75,7 @@ public class ExamPaperServiceImpl extends ServiceImpl<ExamPaperDao, ExamPaperEnt
 
         // 查出标题集合
         TextContentEntity frameTextContent = textContentService.getById(examPaperEntity.getFrameTextContentId());
-        List<ExamPaperTitleItemPo> titleItemPos =
-                JSON.parseArray(frameTextContent.getContent(), ExamPaperTitleItemPo.class);
+        List<ExamPaperTitleItemPo> titleItemPos = frameTextContent.getContentArray(ExamPaperTitleItemPo.class);
 
         // 查出 question 集合
         Map<Long, QuestionEntity> questionMap = new HashMap<>();
@@ -145,6 +143,16 @@ public class ExamPaperServiceImpl extends ServiceImpl<ExamPaperDao, ExamPaperEnt
         textContentService.updateById(textContentEntity);
     }
 
+    @Override
+    public void updateTaskPaperRelation(Long taskId, List<ExamPaperEntity> examPaperItems) {
+        if (!CollectionUtils.isEmpty(examPaperItems)) {
+            List<Long> paperIds = examPaperItems.stream()
+                    .map(ExamPaperEntity::getId)
+                    .collect(Collectors.toList());
+            examPaperDao.updateTaskByIds(taskId, paperIds);
+        }
+    }
+
     /**
      * 设置vo公共属性 ===> entity
      */
@@ -195,7 +203,7 @@ public class ExamPaperServiceImpl extends ServiceImpl<ExamPaperDao, ExamPaperEnt
                 }
                 return examPaperTitleItemPo;
             }).collect(Collectors.toList());
-            textContentEntity.setContent(JSON.toJSONString(examPaperPos));
+            textContentEntity.setContent(examPaperPos);
         }
         return textContentEntity;
     }

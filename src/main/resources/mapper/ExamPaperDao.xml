@@ -38,7 +38,7 @@
         </where>
     </select>
 
-    <select id="listTaskExamPaperPage" resultType="com.tracejp.starnight.entity.ExamPaperEntity">
+    <select id="listTaskExamPaperPage" resultMap="examPaperMap">
         SELECT * FROM `t_exam_paper`
         <where>
             <if test="paperType != null and paperType != ''">
@@ -54,5 +54,14 @@
             AND `del_flag` = 0
         </where>
     </select>
+
+    <update id="updateTaskByIds">
+        UPDATE `t_exam_paper`
+        SET `task_exam_id` = #{taskId}
+        WHERE `id` IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
 
 </mapper>

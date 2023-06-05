@@ -22,5 +22,13 @@
         <result property="taskExamId" column="task_exam_id"/>
     </resultMap>
 
+    <select id="listPage" resultMap="examPaperAnswerMap">
+        SELECT * FROM `t_exam_paper_answer`
+        <where>
+            <if test="subjectId != null and subjectId != ''">
+                AND `subject_id` = #{subjectId}
+            </if>
+        </where>
+    </select>
 
 </mapper>

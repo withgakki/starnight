@@ -1,11 +1,13 @@
 package com.tracejp.starnight.service.impl;
 
-import org.springframework.stereotype.Service;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-
 import com.tracejp.starnight.dao.ExamPaperAnswerDao;
 import com.tracejp.starnight.entity.ExamPaperAnswerEntity;
 import com.tracejp.starnight.service.ExamPaperAnswerService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * @author traceJP
@@ -13,5 +15,14 @@ import com.tracejp.starnight.service.ExamPaperAnswerService;
  */
 @Service("examPaperAnswerService")
 public class ExamPaperAnswerServiceImpl extends ServiceImpl<ExamPaperAnswerDao, ExamPaperAnswerEntity> implements ExamPaperAnswerService {
+
+    @Autowired
+    private ExamPaperAnswerDao examPaperAnswerDao;
+
+
+    @Override
+    public List<ExamPaperAnswerEntity> listPage(ExamPaperAnswerEntity examPaperAnswer) {
+        return examPaperAnswerDao.listPage(examPaperAnswer);
+    }
 
 }

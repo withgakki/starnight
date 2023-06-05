@@ -1,6 +1,5 @@
 package com.tracejp.starnight.service.impl;
 
-import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tracejp.starnight.dao.QuestionDao;
 import com.tracejp.starnight.entity.QuestionEntity;
@@ -65,7 +64,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionDao, QuestionEntity
 
         // 题目处理
         TextContentEntity questionInfo = textContentService.getById(question.getInfoTextContentId());
-        QuestionPo questionPo = JSON.parseObject(questionInfo.getContent(), QuestionPo.class);
+        QuestionPo questionPo = questionInfo.getContent(QuestionPo.class);
         if (questionPo == null) {
             throw new ServiceException("题目信息解析失败");
         }
@@ -171,7 +170,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionDao, QuestionEntity
 
         // 包装为 TextContent
         TextContentEntity textContentEntity = new TextContentEntity();
-        textContentEntity.setContent(JSON.toJSONString(questionPo));
+        textContentEntity.setContent(questionPo);
         return textContentEntity;
     }
 
