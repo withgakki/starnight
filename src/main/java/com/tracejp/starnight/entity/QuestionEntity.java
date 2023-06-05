@@ -20,81 +20,81 @@ import lombok.Data;
 @TableName("t_question")
 public class QuestionEntity {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	/**
-	 * 自增id
-	 */
-	@TableId
-	private Long id;
+    /**
+     * 自增id
+     */
+    @TableId
+    private Long id;
 
-	/**
-	 * 创建时间
-	 */
-	@TableField(fill = FieldFill.INSERT)
-	private Date createTime;
+    /**
+     * 创建时间
+     */
+    @TableField(fill = FieldFill.INSERT)
+    private Date createTime;
 
-	/**
-	 * 创建者id
-	 */
-	private Long createBy;
+    /**
+     * 创建者id
+     */
+    private Long createBy;
 
-	/**
-	 * 删除标志位
-	 */
-	private Boolean delFlag;
+    /**
+     * 删除标志位
+     */
+    private Boolean delFlag;
 
-	/**
-	 * 题目类型 1.单选题 2.多选题 3.判断题 4.填空题 5.简答题
-	 */
-	private Integer questionType;
+    /**
+     * 题目类型 1.单选题 2.多选题 3.判断题 4.填空题 5.简答题
+     */
+    private Integer questionType;
 
-	/**
-	 * 学科
-	 */
-	private Long subjectId;
+    /**
+     * 学科
+     */
+    private Long subjectId;
 
-	/**
-	 * 题目总分
-	 */
-	private Integer score;
+    /**
+     * 题目总分
+     */
+    private Integer score;
 
-	/**
-	 * 级别
-	 */
-	private Integer gradeLevel;
+    /**
+     * 级别
+     */
+    private Integer gradeLevel;
 
-	/**
-	 * 题目难度
-	 */
-	private Integer difficult;
+    /**
+     * 题目难度
+     */
+    private Integer difficult;
 
-	/**
-	 * 正确答案
-	 */
-	private String correct;
+    /**
+     * 正确答案
+     */
+    private String correct;
 
-	/**
-	 * 题目内容信息id
-	 */
-	private Long infoTextContentId;
+    /**
+     * 题目内容信息id
+     */
+    private Long infoTextContentId;
 
-	/**
-	 * 状态
-	 */
-	private Integer status;
+    /**
+     * 状态
+     */
+    private Integer status;
 
-	/**
-	 * 根据 Vo 和 题目类型设置答案
-	 */
-	public void setCorrectFromVo(String correct, List<String> correctArray) {
-		int type = this.getQuestionType();
-		if (type == QuestionTypeEnum.MultipleChoice.getCode()) {
-			String correctJoin = ArrayStringUtils.contentToString(correctArray);
-			this.setCorrect(correctJoin);
-		} else {
-			this.setCorrect(correct);
-		}
-	}
+    /**
+     * 根据 Vo 和 题目类型设置答案
+     */
+    public void setCorrectFromVo(String correct, List<String> correctArray) {
+        int type = this.getQuestionType();
+        if (type == QuestionTypeEnum.MultipleChoice.getCode()) {
+            String correctJoin = ArrayStringUtils.contentToString(correctArray);
+            this.setCorrect(correctJoin);
+        } else {
+            this.setCorrect(correct);
+        }
+    }
 
 }

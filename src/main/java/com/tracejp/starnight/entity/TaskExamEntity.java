@@ -17,48 +17,48 @@ import lombok.Data;
 @TableName("t_task_exam")
 public class TaskExamEntity {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	/**
-	 * 自增id
-	 */
-	@TableId
-	private Long id;
+    /**
+     * 自增id
+     */
+    @TableId
+    private Long id;
 
-	/**
-	 * 创建时间
-	 */
-	@TableField(fill = FieldFill.INSERT)
-	private Date createTime;
+    /**
+     * 创建时间
+     */
+    @TableField(fill = FieldFill.INSERT)
+    private Date createTime;
 
-	/**
-	 * 创建者id
-	 */
-	private Long createBy;
+    /**
+     * 创建者id
+     */
+    private Long createBy;
 
-	/**
-	 * 删除标志位
-	 */
-	private Boolean delFlag;
+    /**
+     * 删除标志位
+     */
+    private Boolean delFlag;
 
-	/**
-	 * 任务标题
-	 */
-	private String title;
+    /**
+     * 任务标题
+     */
+    private String title;
 
-	/**
-	 * 年级
-	 */
-	private Integer gradeLevel;
+    /**
+     * 年级
+     */
+    private Integer gradeLevel;
 
-	/**
-	 * 任务内容id
-	 */
-	private Long frameTextContentId;
+    /**
+     * 任务内容id
+     */
+    private Long frameTextContentId;
 
-	/**
-	 * 创建者用户名
-	 */
-	private String createUserName;
+    /**
+     * 创建者用户名
+     */
+    private String createUserName;
 
 }

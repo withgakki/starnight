@@ -8,8 +8,8 @@ import java.util.List;
 /**
  * 表格分页数据对象
  *
- * @since 2023-05-20 22:04:27
  * @author tracejp
+ * @since 2023-05-20 22:04:27
  */
 @Data
 public class TableDataInfo implements Serializable {

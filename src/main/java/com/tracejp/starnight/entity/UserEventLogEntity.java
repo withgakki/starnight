@@ -17,38 +17,38 @@ import lombok.Data;
 @TableName("t_user_event_log")
 public class UserEventLogEntity {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	/**
-	 * 自增id
-	 */
-	@TableId
-	private Long id;
+    /**
+     * 自增id
+     */
+    @TableId
+    private Long id;
 
-	/**
-	 * 创建时间
-	 */
-	@TableField(fill = FieldFill.INSERT)
-	private Date createTime;
+    /**
+     * 创建时间
+     */
+    @TableField(fill = FieldFill.INSERT)
+    private Date createTime;
 
-	/**
-	 * 用户id
-	 */
-	private Long userId;
+    /**
+     * 用户id
+     */
+    private Long userId;
 
-	/**
-	 * 用户名
-	 */
-	private String userName;
+    /**
+     * 用户名
+     */
+    private String userName;
 
-	/**
-	 * 真实姓名
-	 */
-	private String realName;
+    /**
+     * 真实姓名
+     */
+    private String realName;
 
-	/**
-	 * 操作记录
-	 */
-	private String content;
+    /**
+     * 操作记录
+     */
+    private String content;
 
 }

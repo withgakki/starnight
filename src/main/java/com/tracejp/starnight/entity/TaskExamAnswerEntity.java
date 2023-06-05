@@ -17,33 +17,33 @@ import lombok.Data;
 @TableName("t_task_exam_answer")
 public class TaskExamAnswerEntity {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	/**
-	 * 自增id
-	 */
-	@TableId
-	private Long id;
+    /**
+     * 自增id
+     */
+    @TableId
+    private Long id;
 
-	/**
-	 * 创建时间
-	 */
-	@TableField(fill = FieldFill.INSERT)
-	private Date createTime;
+    /**
+     * 创建时间
+     */
+    @TableField(fill = FieldFill.INSERT)
+    private Date createTime;
 
-	/**
-	 * 创建者id
-	 */
-	private Long createBy;
+    /**
+     * 创建者id
+     */
+    private Long createBy;
 
-	/**
-	 * 任务id
-	 */
-	private Long taskExamId;
+    /**
+     * 任务id
+     */
+    private Long taskExamId;
 
-	/**
-	 * 任务完成情况id
-	 */
-	private Long textContentId;
+    /**
+     * 任务完成情况id
+     */
+    private Long textContentId;
 
 }

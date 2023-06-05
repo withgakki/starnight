@@ -17,48 +17,48 @@ import lombok.Data;
 @TableName("t_message_user")
 public class MessageUserEntity {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	/**
-	 * 自增id
-	 */
-	@TableId
-	private Long id;
+    /**
+     * 自增id
+     */
+    @TableId
+    private Long id;
 
-	/**
-	 * 创建时间
-	 */
-	@TableField(fill = FieldFill.INSERT)
-	private Date createTime;
+    /**
+     * 创建时间
+     */
+    @TableField(fill = FieldFill.INSERT)
+    private Date createTime;
 
-	/**
-	 * 消息内容id
-	 */
-	private Long messageId;
+    /**
+     * 消息内容id
+     */
+    private Long messageId;
 
-	/**
-	 * 接收人id
-	 */
-	private Long receiveUserId;
+    /**
+     * 接收人id
+     */
+    private Long receiveUserId;
 
-	/**
-	 * 接收人用户名
-	 */
-	private String receiveUserName;
+    /**
+     * 接收人用户名
+     */
+    private String receiveUserName;
 
-	/**
-	 * 接收人真实姓名
-	 */
-	private String receiveRealName;
+    /**
+     * 接收人真实姓名
+     */
+    private String receiveRealName;
 
-	/**
-	 * 是否已读
-	 */
-	private Boolean readed;
+    /**
+     * 是否已读
+     */
+    private Boolean readed;
 
-	/**
-	 * 阅读时间
-	 */
-	private Date readTime;
+    /**
+     * 阅读时间
+     */
+    private Date readTime;
 
 }

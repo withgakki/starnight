@@ -15,37 +15,37 @@ import lombok.Data;
 @TableName("t_subject")
 public class SubjectEntity {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	/**
-	 * 自增id
-	 */
-	@TableId
-	private Long id;
+    /**
+     * 自增id
+     */
+    @TableId
+    private Long id;
 
-	/**
-	 * 删除标志位
-	 */
-	private Boolean delFlag;
+    /**
+     * 删除标志位
+     */
+    private Boolean delFlag;
 
-	/**
-	 * 学科名
-	 */
-	private String name;
+    /**
+     * 学科名
+     */
+    private String name;
 
-	/**
-	 * 年级
-	 */
-	private Integer level;
+    /**
+     * 年级
+     */
+    private Integer level;
 
-	/**
-	 * 年级名
-	 */
-	private String levelName;
+    /**
+     * 年级名
+     */
+    private String levelName;
 
-	/**
-	 * 排序字段
-	 */
-	private Integer itemOrder;
+    /**
+     * 排序字段
+     */
+    private Integer itemOrder;
 
 }

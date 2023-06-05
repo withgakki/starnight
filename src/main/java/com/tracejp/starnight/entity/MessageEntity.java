@@ -17,53 +17,53 @@ import lombok.Data;
 @TableName("t_message")
 public class MessageEntity {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	/**
-	 * 自增id
-	 */
-	@TableId
-	private Long id;
+    /**
+     * 自增id
+     */
+    @TableId
+    private Long id;
 
-	/**
-	 * 创建时间
-	 */
-	@TableField(fill = FieldFill.INSERT)
-	private Date createTime;
+    /**
+     * 创建时间
+     */
+    @TableField(fill = FieldFill.INSERT)
+    private Date createTime;
 
-	/**
-	 * 标题
-	 */
-	private String title;
+    /**
+     * 标题
+     */
+    private String title;
 
-	/**
-	 * 内容
-	 */
-	private String content;
+    /**
+     * 内容
+     */
+    private String content;
 
-	/**
-	 * 发送者id
-	 */
-	private Long sendUserId;
+    /**
+     * 发送者id
+     */
+    private Long sendUserId;
 
-	/**
-	 * 发送者用户名
-	 */
-	private String sendUserName;
+    /**
+     * 发送者用户名
+     */
+    private String sendUserName;
 
-	/**
-	 * 发送者真实姓名
-	 */
-	private String sendRealName;
+    /**
+     * 发送者真实姓名
+     */
+    private String sendRealName;
 
-	/**
-	 * 接收人数
-	 */
-	private Integer receiveUserCount;
+    /**
+     * 接收人数
+     */
+    private Integer receiveUserCount;
 
-	/**
-	 * 已读人数
-	 */
-	private Integer readCount;
+    /**
+     * 已读人数
+     */
+    private Integer readCount;
 
 }

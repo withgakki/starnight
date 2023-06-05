@@ -38,9 +38,10 @@ public class BeanUtils extends org.springframework.beans.BeanUtils {
 
     /**
      * Bean属性复制工具方法。
-     * @deprecated 这方法把参数反过来包装了一下 不要用！！！
+     *
      * @param dest 目标对象
      * @param src  源对象
+     * @deprecated 这方法把参数反过来包装了一下 不要用！！！
      */
     @Deprecated
     public static void copyBeanProp(Object dest, Object src) {

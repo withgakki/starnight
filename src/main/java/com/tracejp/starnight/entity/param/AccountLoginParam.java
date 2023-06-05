@@ -36,6 +36,7 @@ public class AccountLoginParam {
 
     /**
      * 获取 security 包装对象
+     *
      * @return UsernamePasswordAuthenticationToken
      */
     public UsernamePasswordAuthenticationToken getUsernamePasswordAuthenticationToken() {
