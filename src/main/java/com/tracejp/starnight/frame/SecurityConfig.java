@@ -97,7 +97,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         configuration.setAllowedOriginPatterns(Collections.singletonList("*"));
         configuration.setAllowCredentials(true);
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/**", configuration);
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 

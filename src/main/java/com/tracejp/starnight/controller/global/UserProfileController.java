@@ -24,7 +24,7 @@ import java.util.Date;
  * @since 2023/5/23 17:08
  */
 @RestController
-@RequestMapping("/api/user/profile")
+@RequestMapping("/user/profile")
 public class UserProfileController extends BaseController {
 
     @Autowired
