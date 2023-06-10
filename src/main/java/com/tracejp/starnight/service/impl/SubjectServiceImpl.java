@@ -36,4 +36,13 @@ public class SubjectServiceImpl extends ServiceImpl<SubjectDao, SubjectEntity> i
         return getOne(wrapper).getLevel();
     }
 
+    @Override
+    public List<SubjectEntity> listByLevel(Integer level) {
+        LambdaQueryWrapper<SubjectEntity> wrapper = Wrappers.lambdaQuery(SubjectEntity.class);
+        if (level != null) {
+            wrapper.eq(SubjectEntity::getLevel, level);
+        }
+        return list(wrapper);
+    }
+
 }

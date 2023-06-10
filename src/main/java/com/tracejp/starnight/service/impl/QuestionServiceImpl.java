@@ -70,6 +70,17 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionDao, QuestionEntity
         }
         questionVo.setTitle(questionPo.getTitleContent());
 
+        // 题目选项处理
+        List<QuestionItemPo> questionItemPos = questionPo.getQuestionItemPos();
+        if (!CollectionUtils.isEmpty(questionItemPos)) {
+            List<QuestionItemVo> questionItemVos = questionItemPos.stream().map(item -> {
+                QuestionItemVo questionItemVo = new QuestionItemVo();
+                BeanUtils.copyProperties(item, questionItemVo);
+                return questionItemVo;
+            }).collect(Collectors.toList());
+            questionVo.setItems(questionItemVos);
+        }
+
         /*
          * 正确答案处理
          * 单选、判断、简答题：返回字符串答案
@@ -86,7 +97,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionDao, QuestionEntity
                 questionVo.setCorrectArray(ArrayStringUtils.contentToArray(question.getCorrect()));
                 break;
             case GapFilling:
-                List<String> correctContent = questionPo.getQuestionItemPos().stream()
+                List<String> correctContent = questionItemPos.stream()
                         .map(QuestionItemPo::getContent)
                         .collect(Collectors.toList());
                 questionVo.setCorrectArray(correctContent);
@@ -119,7 +130,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionDao, QuestionEntity
         questionEntity.setStatus(QuestionStatusEnum.OK.getCode());
         questionEntity.setCorrectFromVo(question.getCorrect(), question.getCorrectArray());
         questionEntity.setScore(ScoreUtils.scoreFromVM(question.getScore()));
-        questionEntity.setDifficult(questionEntity.getDifficult());
+        questionEntity.setDifficult(question.getDifficult());
         questionEntity.setInfoTextContentId(textContentEntity.getId());
         save(questionEntity);
     }

@@ -36,8 +36,8 @@ public class SubjectController extends BaseController {
      * 列表所有
      */
     @GetMapping("/list/all")
-    public AjaxResult listAll() {
-        List<SubjectEntity> list = subjectService.list();
+    public AjaxResult listByLevel(@RequestParam(required = false) Integer level) {
+        List<SubjectEntity> list = subjectService.listByLevel(level);
         return success(list);
     }
 

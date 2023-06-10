@@ -95,8 +95,12 @@ public class ExamPaperServiceImpl extends ServiceImpl<ExamPaperDao, ExamPaperEnt
             // 封装 question vo
             List<QuestionVo> questionItemsVM = title.getQuestionItems().parallelStream().map(item -> {
                 QuestionEntity question = finalQuestionMap.get(item.getId());
-                QuestionVo questionVo = questionService.getQuestionVo(question);
-                questionVo.setItemOrder(item.getItemOrder());
+                QuestionVo questionVo = new QuestionVo();
+                if (question != null) {
+                    questionVo = questionService.getQuestionVo(question);
+                    questionVo.setItemOrder(item.getItemOrder());
+                    return questionVo;
+                }
                 return questionVo;
             }).collect(Collectors.toList());
             titleItemVo.setQuestionItems(questionItemsVM);

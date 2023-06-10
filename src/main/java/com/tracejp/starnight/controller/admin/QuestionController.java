@@ -4,13 +4,19 @@ import com.tracejp.starnight.controller.BaseController;
 import com.tracejp.starnight.entity.QuestionEntity;
 import com.tracejp.starnight.entity.base.AjaxResult;
 import com.tracejp.starnight.entity.base.TableDataInfo;
+import com.tracejp.starnight.entity.dto.QuestionDto;
+import com.tracejp.starnight.entity.po.QuestionPo;
 import com.tracejp.starnight.entity.vo.QuestionVo;
 import com.tracejp.starnight.service.QuestionService;
+import com.tracejp.starnight.service.TextContentService;
+import com.tracejp.starnight.utils.HtmlUtils;
+import com.tracejp.starnight.utils.ScoreUtils;
 import com.tracejp.starnight.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
@@ -24,6 +30,10 @@ public class QuestionController extends BaseController {
     @Autowired
     private QuestionService questionService;
 
+    @Autowired
+    private TextContentService textContentService;
+
+
     /**
      * 列表
      */
@@ -31,7 +41,18 @@ public class QuestionController extends BaseController {
     public TableDataInfo list(QuestionEntity question) {
         startPage();
         List<QuestionEntity> list = questionService.listPage(question);
-        return getDataTable(list);
+        // 封装 dto
+        List<QuestionDto> dtoList = list.stream().map(item -> {
+            QuestionDto questionDto = new QuestionDto().convertFrom(item);
+            questionDto.setScore(ScoreUtils.scoreToVM(item.getScore()));
+            QuestionPo content = textContentService.getById(item.getInfoTextContentId()).getContent(QuestionPo.class);
+            questionDto.setShortTitle(HtmlUtils.clear(content.getTitleContent()));
+            questionDto.setAnalyze(content.getAnalyze());
+            return questionDto;
+        }).collect(Collectors.toList());
+        TableDataInfo dataTable = getDataTable(list);
+        dataTable.setRows(dtoList);
+        return dataTable;
     }
 
     /**
