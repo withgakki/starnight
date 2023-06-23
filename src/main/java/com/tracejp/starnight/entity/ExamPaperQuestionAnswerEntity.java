@@ -77,7 +77,7 @@ public class ExamPaperQuestionAnswerEntity {
     private Long questionTextContentId;
 
     /**
-     * 做题人答案
+     * 做题人答案 - 所有题型均保存到此属性
      */
     private String answer;
 

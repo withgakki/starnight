@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.tracejp.starnight.entity.TaskExamEntity;
 import com.tracejp.starnight.entity.UserEntity;
 import com.tracejp.starnight.entity.vo.TaskExamVo;
+import com.tracejp.starnight.entity.vo.student.TaskExamIndexVo;
 
 import java.util.List;
 
@@ -17,6 +18,16 @@ public interface TaskExamService extends IService<TaskExamEntity> {
      * 分页
      */
     List<TaskExamEntity> listPage(TaskExamEntity taskExam);
+
+    /**
+     * 通过等级获取任务考试列表
+     */
+    List<TaskExamEntity> listByLevel(Integer userLevel);
+
+    /**
+     * 获取当前学生任务考试列表
+     */
+    List<TaskExamIndexVo> listAllByStudent(Integer level, Long userId);
 
     /**
      * 保存 vo

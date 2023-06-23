@@ -32,7 +32,7 @@ public class TaskExamAnswerEntity {
     private Date createTime;
 
     /**
-     * 创建者id
+     * 创建者id（任务完成者id 学生id）
      */
     private Long createBy;
 
@@ -42,7 +42,7 @@ public class TaskExamAnswerEntity {
     private Long taskExamId;
 
     /**
-     * 任务完成情况id
+     * 任务完成情况id - List<TaskItemAnswerPo>
      */
     private Long textContentId;
 

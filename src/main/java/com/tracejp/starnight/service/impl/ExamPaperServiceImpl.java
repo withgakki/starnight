@@ -1,5 +1,6 @@
 package com.tracejp.starnight.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tracejp.starnight.dao.ExamPaperDao;
 import com.tracejp.starnight.entity.ExamPaperEntity;
@@ -59,6 +60,16 @@ public class ExamPaperServiceImpl extends ServiceImpl<ExamPaperDao, ExamPaperEnt
     public List<ExamPaperEntity> listTaskExamPaperPage(ExamPaperEntity examPaper) {
         examPaper.setPaperType(ExamPaperTypeEnum.TASK.getCode());
         return examPaperDao.listTaskExamPaperPage(examPaper);
+    }
+
+    @Override
+    public List<ExamPaperEntity> listStudentIndexPage(Integer level, Integer type) {
+        LambdaQueryWrapper<ExamPaperEntity> wrapper = new LambdaQueryWrapper<>(ExamPaperEntity.class)
+                .eq(ExamPaperEntity::getGradeLevel, level)
+                .eq(ExamPaperEntity::getPaperType, type)
+                .orderByAsc(ExamPaperEntity::getId)
+                .last("limit 5");
+        return list(wrapper);
     }
 
     @Override

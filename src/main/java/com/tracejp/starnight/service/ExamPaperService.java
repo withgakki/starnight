@@ -23,6 +23,11 @@ public interface ExamPaperService extends IService<ExamPaperEntity> {
     List<ExamPaperEntity> listTaskExamPaperPage(ExamPaperEntity examPaper);
 
     /**
+     * 随机获取普通试卷（除任务试卷）
+     */
+    List<ExamPaperEntity> listStudentIndexPage(Integer level, Integer type);
+
+    /**
      * 通过 id 获取 vo
      */
     ExamPaperVo getExamPaperVo(Long id);

@@ -1,16 +1,19 @@
 package com.tracejp.starnight.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tracejp.starnight.dao.ExamPaperDao;
 import com.tracejp.starnight.dao.TaskExamDao;
-import com.tracejp.starnight.entity.ExamPaperEntity;
-import com.tracejp.starnight.entity.TaskExamEntity;
-import com.tracejp.starnight.entity.TextContentEntity;
-import com.tracejp.starnight.entity.UserEntity;
+import com.tracejp.starnight.entity.*;
+import com.tracejp.starnight.entity.po.TaskItemAnswerPo;
 import com.tracejp.starnight.entity.po.TaskItemPo;
 import com.tracejp.starnight.entity.vo.TaskExamVo;
+import com.tracejp.starnight.entity.vo.student.TaskExamIndexItemVo;
+import com.tracejp.starnight.entity.vo.student.TaskExamIndexVo;
 import com.tracejp.starnight.exception.ServiceException;
 import com.tracejp.starnight.service.ExamPaperService;
+import com.tracejp.starnight.service.TaskExamAnswerService;
 import com.tracejp.starnight.service.TaskExamService;
 import com.tracejp.starnight.service.TextContentService;
 import com.tracejp.starnight.utils.BeanUtils;
@@ -20,7 +23,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -32,6 +37,9 @@ public class TaskExamServiceImpl extends ServiceImpl<TaskExamDao, TaskExamEntity
 
     @Autowired
     private ExamPaperService examPaperService;
+
+    @Autowired
+    private TaskExamAnswerService taskExamAnswerService;
 
     @Autowired
     private TextContentService textContentService;
@@ -46,6 +54,47 @@ public class TaskExamServiceImpl extends ServiceImpl<TaskExamDao, TaskExamEntity
     @Override
     public List<TaskExamEntity> listPage(TaskExamEntity taskExam) {
         return taskExamDao.listPage(taskExam);
+    }
+
+    @Override
+    public List<TaskExamEntity> listByLevel(Integer userLevel) {
+        LambdaQueryWrapper<TaskExamEntity> wrapper = Wrappers.lambdaQuery(TaskExamEntity.class)
+                .eq(TaskExamEntity::getGradeLevel, userLevel);
+        return list(wrapper);
+    }
+
+    @Override
+    public List<TaskExamIndexVo> listAllByStudent(Integer level, Long userId) {
+        // 获取年级任务
+        List<TaskExamEntity> byLevel = listByLevel(level);
+        if (CollectionUtils.isEmpty(byLevel)) {
+            return new ArrayList<>(0);
+        }
+
+        // 获取当前学生已完成的任务
+        List<Long> byLevelIds = byLevel.stream().map(TaskExamEntity::getId).collect(Collectors.toList());
+        List<TaskExamAnswerEntity> taskExamAnswerEntities = taskExamAnswerService.listByUserIdTaskIds(userId, byLevelIds);
+        Map<Long, TaskExamAnswerEntity> findTaskExamAnswerMap = null;
+        if (!CollectionUtils.isEmpty(taskExamAnswerEntities)) {
+            findTaskExamAnswerMap = taskExamAnswerEntities.stream()
+                    .collect(Collectors.toMap(TaskExamAnswerEntity::getTaskExamId, taskExamAnswerEntity -> taskExamAnswerEntity));
+        }
+
+        // 封装 vos
+        final Map<Long, TaskExamAnswerEntity> findTaskExamAnswerMapFinal = findTaskExamAnswerMap;
+        return byLevel.stream().map(levelTask -> {
+            TaskExamIndexVo vo = new TaskExamIndexVo();
+            vo.setId(levelTask.getId());
+            vo.setTitle(levelTask.getTitle());
+            TaskExamAnswerEntity taskExamAnswerEntity = null;
+            if (findTaskExamAnswerMapFinal != null) {
+                taskExamAnswerEntity = findTaskExamAnswerMapFinal.get(levelTask.getId());
+            }
+            List<TaskExamIndexItemVo> taskExamIndexItemVos =
+                    buildTaskExamIndexItemVo(levelTask.getFrameTextContentId(), taskExamAnswerEntity);
+            vo.setPaperItems(taskExamIndexItemVos);
+            return vo;
+        }).collect(Collectors.toList());
     }
 
     @Transactional
@@ -156,6 +205,45 @@ public class TaskExamServiceImpl extends ServiceImpl<TaskExamDao, TaskExamEntity
             textContentEntity.setContent(taskItemPos);
         }
         return textContentEntity;
+    }
+
+    /**
+     * 构造任务试卷信息 TaskExamIndexItemVo
+     */
+    private List<TaskExamIndexItemVo> buildTaskExamIndexItemVo(Long frameTextContentId, TaskExamAnswerEntity taskExamAnswerEntity) {
+        TextContentEntity textContent = textContentService.getById(frameTextContentId);
+        if (textContent == null) {
+            throw new ServiceException("任务内容不存在");
+        }
+        List<TaskItemPo> taskItemPos = textContent.getContentArray(TaskItemPo.class);
+
+        // 获取当前用户答卷信息
+        Map<Long, TaskItemAnswerPo> findTaskItemMap = null;
+        if (taskExamAnswerEntity != null) {
+            List<TaskItemAnswerPo> taskItemAnswerPos = textContentService
+                    .getById(taskExamAnswerEntity.getTextContentId())
+                    .getContentArray(TaskItemAnswerPo.class);
+            if (!CollectionUtils.isEmpty(taskItemAnswerPos)) {
+                findTaskItemMap = taskItemAnswerPos.stream()
+                        .collect(Collectors.toMap(TaskItemAnswerPo::getExamPaperId, taskItemAnswerPo -> taskItemAnswerPo));
+            }
+        }
+
+        final Map<Long, TaskItemAnswerPo> findTaskItemMapFinal = findTaskItemMap;
+        return taskItemPos.stream().map(taskItem -> {
+            TaskExamIndexItemVo taskExamIndexItemVo = new TaskExamIndexItemVo();
+            taskExamIndexItemVo.setExamPaperId(taskItem.getExamPaperId());
+            taskExamIndexItemVo.setExamPaperName(taskItem.getExamPaperName());
+            // 如果存在 答卷 则封装答卷信息
+            if (findTaskItemMapFinal != null) {
+                TaskItemAnswerPo taskItemAnswerPo = findTaskItemMapFinal.get(taskItem.getExamPaperId());
+                if (taskItemAnswerPo != null) {
+                    taskExamIndexItemVo.setExamPaperAnswerId(taskItemAnswerPo.getExamPaperAnswerId());
+                    taskExamIndexItemVo.setStatus(taskItemAnswerPo.getStatus());
+                }
+            }
+            return taskExamIndexItemVo;
+        }).collect(Collectors.toList());
     }
 
 }

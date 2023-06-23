@@ -50,6 +50,9 @@ public class BaseController {
     protected void startPage() {
         PageUtils.startPage();
     }
+    protected void startPage(int pageNum, int pageSize) {
+        PageUtils.startPage(pageNum, pageSize);
+    }
 
     /**
      * 清理分页的线程变量

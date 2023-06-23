@@ -49,7 +49,7 @@ public class TaskExamController extends BaseController {
      */
     @PostMapping
     public AjaxResult save(@RequestBody TaskExamVo taskExam) {
-        taskExamService.saveTaskExamVo(taskExam, new UserEntity());  // SecurityUtils.getLoginUser().getUser()
+        taskExamService.saveTaskExamVo(taskExam, SecurityUtils.getLoginUser().getUser());
         return success();
     }
 

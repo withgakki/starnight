@@ -112,6 +112,12 @@
             <version>1.4.6</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.hankcs</groupId>
+            <artifactId>hanlp</artifactId>
+            <version>portable-1.7.6</version>
+        </dependency>
+
         <!-- JSON 解析器和生成器 -->
         <dependency>
             <groupId>com.alibaba.fastjson2</groupId>
