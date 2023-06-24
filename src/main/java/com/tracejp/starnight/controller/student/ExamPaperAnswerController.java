@@ -6,12 +6,10 @@ import com.tracejp.starnight.entity.base.AjaxResult;
 import com.tracejp.starnight.entity.bo.ExamPaperAnswerBo;
 import com.tracejp.starnight.entity.vo.student.ExamPaperAnswerSubmitVo;
 import com.tracejp.starnight.service.ExamPaperAnswerService;
+import com.tracejp.starnight.utils.ScoreUtils;
 import com.tracejp.starnight.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * <p>  <p/>
@@ -26,7 +24,6 @@ public class ExamPaperAnswerController extends BaseController {
     @Autowired
     private ExamPaperAnswerService examPaperAnswerService;
 
-
     /**
      * 提交答案
      */
@@ -34,6 +31,18 @@ public class ExamPaperAnswerController extends BaseController {
     public AjaxResult submit(@RequestBody ExamPaperAnswerSubmitVo answerVo) {
         UserEntity user = SecurityUtils.getLoginUser().getUser();
         ExamPaperAnswerBo examPaperAnswerBo = examPaperAnswerService.buildExamPaperBo(answerVo, user);
+        examPaperAnswerService.saveAnswerBoAsync(examPaperAnswerBo);
+        Integer systemScore = examPaperAnswerBo.getAnswer().getSystemScore();
+        return success().put("score", ScoreUtils.scoreToVM(systemScore));
+    }
+
+    /**
+     * 答卷查询
+     */
+    @GetMapping("/{id}")
+    public AjaxResult info(@PathVariable Long id) {
+
+        // 4.1.10
 
         return success();
     }

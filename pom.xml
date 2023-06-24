@@ -112,6 +112,7 @@
             <version>1.4.6</version>
         </dependency>
 
+        <!-- 中文分词插件 -->
         <dependency>
             <groupId>com.hankcs</groupId>
             <artifactId>hanlp</artifactId>

@@ -16,7 +16,7 @@ public class ExamPaperAnswerSubmitVo {
     /**
      * 试卷 id
      */
-    private Integer id;
+    private Long id;
 
     /**
      * 做题时长

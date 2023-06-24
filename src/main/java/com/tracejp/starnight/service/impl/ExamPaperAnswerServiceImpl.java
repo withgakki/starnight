@@ -14,19 +14,19 @@ import com.tracejp.starnight.entity.po.ExamPaperTitleItemPo;
 import com.tracejp.starnight.entity.vo.student.ExamPaperAnswerSubmitItemVo;
 import com.tracejp.starnight.entity.vo.student.ExamPaperAnswerSubmitVo;
 import com.tracejp.starnight.exception.ServiceException;
-import com.tracejp.starnight.service.ExamPaperAnswerService;
-import com.tracejp.starnight.service.ExamPaperService;
-import com.tracejp.starnight.service.QuestionService;
-import com.tracejp.starnight.service.TextContentService;
+import com.tracejp.starnight.service.*;
 import com.tracejp.starnight.utils.ArrayStringUtils;
 import com.tracejp.starnight.utils.StringUtils;
 import com.tracejp.starnight.utils.TextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 /**
@@ -43,11 +43,19 @@ public class ExamPaperAnswerServiceImpl extends ServiceImpl<ExamPaperAnswerDao, 
     private QuestionService questionService;
 
     @Autowired
+    private ExamPaperQuestionAnswerService examPaperQuestionAnswerService;
+
+    @Autowired
+    private TaskExamAnswerService taskExamAnswerService;
+
+    @Autowired
     private TextContentService textContentService;
 
     @Autowired
     private ExamPaperAnswerDao examPaperAnswerDao;
 
+    @Autowired
+    private ThreadPoolExecutor threadPoolExecutor;
 
     @Override
     public List<ExamPaperAnswerEntity> listPage(ExamPaperAnswerEntity examPaperAnswer) {
@@ -151,9 +159,14 @@ public class ExamPaperAnswerServiceImpl extends ServiceImpl<ExamPaperAnswerDao, 
 
         // 设置答卷状态 - 任务试卷需要等待批改
         ExamPaperTypeEnum paperType = ExamPaperTypeEnum.fromCode(examPaperEntity.getPaperType());
-        if (paperType == ExamPaperTypeEnum.TASK) {
+
+        // 任务试卷需要等待批改
+        boolean needJudge = questionAnswerEntities.stream()
+                .anyMatch(q -> QuestionTypeEnum.needSaveTextContent(q.getQuestionType()));
+        if (paperType == ExamPaperTypeEnum.TASK && needJudge) {
             examPaperAnswerEntity.setStatus(ExamPaperAnswerStatusEnum.WaitJudge.getCode());
         } else {
+            examPaperAnswerEntity.setUserScore(examPaperAnswerEntity.getSystemScore());
             examPaperAnswerEntity.setStatus(ExamPaperAnswerStatusEnum.Complete.getCode());
         }
 
@@ -165,6 +178,43 @@ public class ExamPaperAnswerServiceImpl extends ServiceImpl<ExamPaperAnswerDao, 
                 .eq(ExamPaperAnswerEntity::getExamPaperId, paperId)
                 .eq(ExamPaperAnswerEntity::getCreateBy, userId);
         return examPaperAnswerDao.selectCount(wrapper) > 0;
+    }
+
+    @Transactional
+    @Override
+    public CompletableFuture<Void> saveAnswerBoAsync(ExamPaperAnswerBo examPaperAnswerBo) {
+        return CompletableFuture.runAsync(() -> {
+            ExamPaperEntity examPaper = examPaperAnswerBo.getExamPaper();
+            ExamPaperAnswerEntity examPaperAnswerEntity = examPaperAnswerBo.getAnswer();
+            List<ExamPaperQuestionAnswerEntity> questionAnswers = examPaperAnswerBo.getQuestionAnswers();
+            if (examPaper == null || examPaperAnswerEntity == null || questionAnswers == null) {
+                throw new ServiceException("答卷保存失败，业务Bo构造异常");
+            }
+
+            // 答卷保存
+            this.save(examPaperAnswerEntity);
+
+            // 问题保存 - 简答 填空 需要保存文本内容
+            for (ExamPaperQuestionAnswerEntity question : questionAnswers) {
+                if (QuestionTypeEnum.needSaveTextContent(question.getQuestionType())) {
+                    TextContentEntity textContentEntity = new TextContentEntity();
+                    textContentEntity.setContent(question.getAnswer());
+                    textContentService.save(textContentEntity);
+                    question.setTextContentId(textContentEntity.getId());
+                    question.setAnswer(null);
+                }
+            }
+            for (ExamPaperQuestionAnswerEntity question : questionAnswers) {
+                question.setExamPaperAnswerId(examPaperAnswerEntity.getId());
+            }
+            examPaperQuestionAnswerService.saveBatch(questionAnswers);
+
+            // 任务试卷更新
+            if (ExamPaperTypeEnum.fromCode(examPaper.getPaperType()) == ExamPaperTypeEnum.TASK) {
+                taskExamAnswerService.saveByPaperAnswer(examPaper, examPaperAnswerEntity);
+            }
+
+        }, threadPoolExecutor);
     }
 
     /**
@@ -224,9 +274,27 @@ public class ExamPaperAnswerServiceImpl extends ServiceImpl<ExamPaperAnswerDao, 
             case MultipleChoice:
                 strAnswer = ArrayStringUtils.contentToString(questionAnswer.getContentArray());
                 questionAnswerEntity.setAnswer(strAnswer);
-                isRight = StringUtils.equals(question.getCorrect(), strAnswer);
-                questionAnswerEntity.setDoRight(isRight);
-                questionAnswerEntity.setCustomerScore(isRight ? question.getScore() : 0);
+                boolean hasError = false;
+                long doRightCount = 0;
+                List<String> correct = ArrayStringUtils.contentToArray(question.getCorrect());
+                List<String> answers = questionAnswer.getContentArray();
+                for (String answer : answers) {
+                    if (StringUtils.isNotEmpty(answer) && correct.contains(answer)) {
+                        doRightCount++;
+                    } else {
+                        hasError = true;
+                    }
+                }
+                if (doRightCount == correct.size() && !hasError) {  // 全对得满分
+                    questionAnswerEntity.setDoRight(true);
+                    questionAnswerEntity.setCustomerScore(question.getScore());
+                } else if (hasError) {  // 错一个不得分
+                    questionAnswerEntity.setDoRight(false);
+                    questionAnswerEntity.setCustomerScore(0);
+                } else {  // 部分对得半分
+                    questionAnswerEntity.setDoRight(false);
+                    questionAnswerEntity.setCustomerScore(question.getScore() / 2);
+                }
                 break;
             // 填空：比对答案，每空得分为总分数的百分比
             case GapFilling:

@@ -7,6 +7,7 @@ import com.tracejp.starnight.entity.bo.ExamPaperAnswerBo;
 import com.tracejp.starnight.entity.vo.student.ExamPaperAnswerSubmitVo;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author traceJP
@@ -28,6 +29,11 @@ public interface ExamPaperAnswerService extends IService<ExamPaperAnswerEntity> 
      * 是否存在答案 通过 试卷id 用户id 查找
      */
     boolean hasAnswerByPaperIdUserId(Long paperId, Long userId);
+
+    /**
+     * 保存答案
+     */
+    CompletableFuture<Void> saveAnswerBoAsync(ExamPaperAnswerBo examPaperAnswerBo);
 
 }
 

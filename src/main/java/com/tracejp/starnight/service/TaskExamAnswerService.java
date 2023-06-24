@@ -1,6 +1,8 @@
 package com.tracejp.starnight.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.tracejp.starnight.entity.ExamPaperAnswerEntity;
+import com.tracejp.starnight.entity.ExamPaperEntity;
 import com.tracejp.starnight.entity.TaskExamAnswerEntity;
 
 import java.util.List;
@@ -20,6 +22,11 @@ public interface TaskExamAnswerService extends IService<TaskExamAnswerEntity> {
      * 通过用户id、任务ids 获取任务考试答案列表
      */
     List<TaskExamAnswerEntity> listByUserIdTaskIds(Long userId, List<Long> taskIds);
+
+    /**
+     * 保存 通过试卷和答卷
+     */
+    void saveByPaperAnswer(ExamPaperEntity examPaper, ExamPaperAnswerEntity examPaperAnswerEntity);
 
 }
 

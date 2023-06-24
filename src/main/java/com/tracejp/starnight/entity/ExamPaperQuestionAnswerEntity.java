@@ -77,12 +77,14 @@ public class ExamPaperQuestionAnswerEntity {
     private Long questionTextContentId;
 
     /**
-     * 做题人答案 - 所有题型均保存到此属性
+     * 做题人答案 - 单选、多选、判断
+     * 参考 QuestionTypeEnum#needSaveTextContent
      */
     private String answer;
 
     /**
-     * 题目内容id
+     * 做题人答案 - 填空、简答
+     * 参考 QuestionTypeEnum#needSaveTextContent
      */
     private Long textContentId;
 
