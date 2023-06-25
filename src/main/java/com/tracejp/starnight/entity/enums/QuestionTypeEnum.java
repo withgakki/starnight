@@ -37,6 +37,10 @@ public enum QuestionTypeEnum {
         return keyMap.get(code);
     }
 
+    /**
+     * 题目保存方式
+     * @return 填空 简答 返回true, 单选 多选 判断 返回false
+     */
     public static boolean needSaveTextContent(Integer code) {
         QuestionTypeEnum questionTypeEnum = QuestionTypeEnum.fromCode(code);
         switch (questionTypeEnum) {

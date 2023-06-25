@@ -1,16 +1,16 @@
 package com.tracejp.starnight.controller.admin;
 
-import java.util.List;
-
+import com.tracejp.starnight.controller.BaseController;
+import com.tracejp.starnight.entity.ExamPaperAnswerEntity;
+import com.tracejp.starnight.entity.base.AjaxResult;
+import com.tracejp.starnight.entity.base.TableDataInfo;
+import com.tracejp.starnight.entity.vo.ExamPaperAnswerSubmitVo;
+import com.tracejp.starnight.service.ExamPaperAnswerService;
+import com.tracejp.starnight.utils.ScoreUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 
-import com.tracejp.starnight.entity.ExamPaperAnswerEntity;
-import com.tracejp.starnight.service.ExamPaperAnswerService;
-import com.tracejp.starnight.controller.BaseController;
-import com.tracejp.starnight.entity.base.TableDataInfo;
-import com.tracejp.starnight.entity.base.AjaxResult;
+import java.util.List;
 
 
 /**
@@ -32,6 +32,16 @@ public class ExamPaperAnswerController extends BaseController {
         startPage();
         List<ExamPaperAnswerEntity> list = examPaperAnswerService.listPage(examPaperAnswer);
         return getDataTable(list);
+    }
+
+    /**
+     * 改卷
+     * 只批改 填空 简答
+     */
+    @PutMapping("/judge")
+    public AjaxResult judge(@RequestBody ExamPaperAnswerSubmitVo submitVo) {
+        Integer score = examPaperAnswerService.judge(submitVo);
+        return success(ScoreUtils.scoreToVM(score));
     }
 
 }

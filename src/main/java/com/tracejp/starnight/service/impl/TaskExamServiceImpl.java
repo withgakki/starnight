@@ -73,7 +73,7 @@ public class TaskExamServiceImpl extends ServiceImpl<TaskExamDao, TaskExamEntity
 
         // 获取当前学生已完成的任务
         List<Long> byLevelIds = byLevel.stream().map(TaskExamEntity::getId).collect(Collectors.toList());
-        List<TaskExamAnswerEntity> taskExamAnswerEntities = taskExamAnswerService.listByUserIdTaskIds(userId, byLevelIds);
+        List<TaskExamAnswerEntity> taskExamAnswerEntities = taskExamAnswerService.listByUserIdTaskId(userId, byLevelIds);
         Map<Long, TaskExamAnswerEntity> findTaskExamAnswerMap = null;
         if (!CollectionUtils.isEmpty(taskExamAnswerEntities)) {
             findTaskExamAnswerMap = taskExamAnswerEntities.stream()

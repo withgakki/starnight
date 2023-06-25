@@ -1,4 +1,4 @@
-package com.tracejp.starnight.entity.vo.student;
+package com.tracejp.starnight.entity.vo;
 
 import lombok.Data;
 
@@ -14,12 +14,12 @@ import java.util.List;
 public class ExamPaperAnswerSubmitItemVo {
 
     /**
-     * 试卷 id
+     * 问题答案 id
      */
     private Long id;
 
     /**
-     * 问题 id
+     * 原问题 id
      */
     private Long questionId;
 

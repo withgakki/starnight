@@ -38,7 +38,15 @@ public class TaskExamAnswerServiceImpl extends ServiceImpl<TaskExamAnswerDao, Ta
     }
 
     @Override
-    public List<TaskExamAnswerEntity> listByUserIdTaskIds(Long userId, List<Long> taskIds) {
+    public TaskExamAnswerEntity listByUserIdTaskId(Long userId, Long taskId) {
+        LambdaQueryWrapper<TaskExamAnswerEntity> wrapper = Wrappers.lambdaQuery(TaskExamAnswerEntity.class)
+                .eq(TaskExamAnswerEntity::getCreateBy, userId)
+                .eq(TaskExamAnswerEntity::getTaskExamId, taskId);
+        return getOne(wrapper);
+    }
+
+    @Override
+    public List<TaskExamAnswerEntity> listByUserIdTaskId(Long userId, List<Long> taskIds) {
         LambdaQueryWrapper<TaskExamAnswerEntity> wrapper = Wrappers.lambdaQuery(TaskExamAnswerEntity.class)
                 .eq(TaskExamAnswerEntity::getCreateBy, userId)
                 .in(TaskExamAnswerEntity::getTaskExamId, taskIds);

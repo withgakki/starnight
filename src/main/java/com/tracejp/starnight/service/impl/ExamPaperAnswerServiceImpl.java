@@ -11,20 +11,22 @@ import com.tracejp.starnight.entity.enums.ExamPaperTypeEnum;
 import com.tracejp.starnight.entity.enums.QuestionTypeEnum;
 import com.tracejp.starnight.entity.po.ExamPaperQuestionItemPo;
 import com.tracejp.starnight.entity.po.ExamPaperTitleItemPo;
-import com.tracejp.starnight.entity.vo.student.ExamPaperAnswerSubmitItemVo;
-import com.tracejp.starnight.entity.vo.student.ExamPaperAnswerSubmitVo;
+import com.tracejp.starnight.entity.po.TaskItemAnswerPo;
+import com.tracejp.starnight.entity.vo.ExamPaperAnswerSubmitItemVo;
+import com.tracejp.starnight.entity.vo.ExamPaperAnswerSubmitVo;
 import com.tracejp.starnight.exception.ServiceException;
 import com.tracejp.starnight.service.*;
 import com.tracejp.starnight.utils.ArrayStringUtils;
+import com.tracejp.starnight.utils.ScoreUtils;
 import com.tracejp.starnight.utils.StringUtils;
 import com.tracejp.starnight.utils.TextUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
@@ -33,6 +35,7 @@ import java.util.stream.Collectors;
  * @author traceJP
  * @since 2023-05-20 23:19:38
  */
+@Slf4j
 @Service("examPaperAnswerService")
 public class ExamPaperAnswerServiceImpl extends ServiceImpl<ExamPaperAnswerDao, ExamPaperAnswerEntity> implements ExamPaperAnswerService {
 
@@ -164,6 +167,12 @@ public class ExamPaperAnswerServiceImpl extends ServiceImpl<ExamPaperAnswerDao, 
         boolean needJudge = questionAnswerEntities.stream()
                 .anyMatch(q -> QuestionTypeEnum.needSaveTextContent(q.getQuestionType()));
         if (paperType == ExamPaperTypeEnum.TASK && needJudge) {
+            // 用户临时得分计算
+            int userScore = questionAnswerEntities.stream()
+                    .filter(item -> !QuestionTypeEnum.needSaveTextContent(item.getQuestionType()))
+                    .mapToInt(ExamPaperQuestionAnswerEntity::getCustomerScore)
+                    .sum();
+            examPaperAnswerEntity.setUserScore(userScore);
             examPaperAnswerEntity.setStatus(ExamPaperAnswerStatusEnum.WaitJudge.getCode());
         } else {
             examPaperAnswerEntity.setUserScore(examPaperAnswerEntity.getSystemScore());
@@ -215,6 +224,119 @@ public class ExamPaperAnswerServiceImpl extends ServiceImpl<ExamPaperAnswerDao, 
             }
 
         }, threadPoolExecutor);
+    }
+
+    @Override
+    public ExamPaperAnswerSubmitVo getAnswerSubmitVoById(Long id) {
+        ExamPaperAnswerEntity answer = getById(id);
+        if (answer == null) {
+            throw new ServiceException("答卷不存在");
+        }
+
+        ExamPaperAnswerSubmitVo submitVo = new ExamPaperAnswerSubmitVo();
+        submitVo.setId(answer.getId());
+        submitVo.setDoTime(answer.getDoTime());
+        submitVo.setScore(ScoreUtils.scoreToVM(answer.getUserScore()));
+
+        List<ExamPaperQuestionAnswerEntity> answerItems = examPaperQuestionAnswerService.listByAnswerId(id);
+        if (!CollectionUtils.isEmpty(answerItems)) {
+            List<ExamPaperAnswerSubmitItemVo> submitVos = answerItems.stream()
+                    .map(examPaperQuestionAnswerService::buildAnswerSubmitItemVo)
+                    .collect(Collectors.toList());
+            submitVo.setAnswerItems(submitVos);
+        }
+
+        return submitVo;
+    }
+
+    @Transactional
+    @Override
+    public Integer judge(ExamPaperAnswerSubmitVo submitVo) {
+        ExamPaperAnswerEntity answer = getById(submitVo.getId());
+        ExamPaperAnswerStatusEnum answerStatus = ExamPaperAnswerStatusEnum.fromCode(answer.getStatus());
+        if (answerStatus == ExamPaperAnswerStatusEnum.Complete) {
+            throw new ServiceException("试卷已经完成，不允许再次批改");
+        }
+
+        // 取出需要批改的题目
+        List<ExamPaperAnswerSubmitItemVo> answerItems = submitVo.getAnswerItems();
+        List<ExamPaperAnswerSubmitItemVo> needJudge = new ArrayList<>();
+        Map<Long, QuestionEntity> findOriginQuestionMap = new HashMap<>();
+        if (!CollectionUtils.isEmpty(answerItems)) {
+            List<Long> questionIds = answerItems.stream()
+                    .map(ExamPaperAnswerSubmitItemVo::getQuestionId)
+                    .collect(Collectors.toList());
+            List<QuestionEntity> originQuestion = questionService.listByIds(questionIds);
+            if (!CollectionUtils.isEmpty(originQuestion)) {
+                findOriginQuestionMap = originQuestion.stream()
+                        .collect(Collectors.toMap(QuestionEntity::getId, q -> q));
+                final Map<Long, QuestionEntity> findOriginQuestionMapFinal = findOriginQuestionMap;
+                needJudge = answerItems.stream().filter(item -> {
+                    QuestionEntity questionEntity = findOriginQuestionMapFinal.get(item.getQuestionId());
+                    return questionEntity != null &&
+                            QuestionTypeEnum.needSaveTextContent(questionEntity.getQuestionType());
+                }).collect(Collectors.toList());
+            }
+        }
+
+        List<ExamPaperQuestionAnswerEntity> updateEntities = new ArrayList<>(needJudge.size());
+        Integer userScore = answer.getUserScore();
+        Integer correctNum = answer.getQuestionCorrect();
+
+        for (ExamPaperAnswerSubmitItemVo itemVo : needJudge) {
+            ExamPaperQuestionAnswerEntity update = new ExamPaperQuestionAnswerEntity();
+            update.setId(itemVo.getId());
+            update.setCustomerScore(ScoreUtils.scoreFromVM(itemVo.getScore()));
+            QuestionEntity questionEntity = findOriginQuestionMap.get(itemVo.getQuestionId());
+            boolean doRight = Objects.equals(update.getCustomerScore(), questionEntity.getScore());
+            update.setDoRight(doRight);
+            updateEntities.add(update);
+
+            userScore += update.getCustomerScore();
+            if (doRight) {
+                correctNum++;
+            }
+        }
+
+        // 答卷实体修改 & 答卷问题修改
+        answer.setUserScore(userScore);
+        answer.setQuestionCorrect(correctNum);
+        answer.setStatus(ExamPaperAnswerStatusEnum.Complete.getCode());
+        CompletableFuture<Void> updateEntityTask = CompletableFuture.runAsync(() -> {
+            updateById(answer);
+            examPaperQuestionAnswerService.updateBatchById(updateEntities);
+        }).whenComplete((result, e) -> {
+            if (e != null) {
+                log.error("数据库修改异常");
+                throw new ServiceException("数据库修改异常");
+            }
+        });
+
+        // 任务试卷状态更新
+        ExamPaperTypeEnum examPaperType = ExamPaperTypeEnum.fromCode(answer.getPaperType());
+        if (examPaperType == ExamPaperTypeEnum.TASK) {
+            ExamPaperEntity examPaperEntity = examPaperService.getById(answer.getExamPaperId());
+            if (examPaperEntity == null) {
+                updateEntityTask.cancel(true);
+                throw new ServiceException("试卷未找到");
+            }
+            TaskExamAnswerEntity taskAnswer = taskExamAnswerService.listByUserIdTaskId(examPaperEntity.getCreateBy(),
+                    examPaperEntity.getTaskExamId());
+            TextContentEntity textContent = textContentService.getById(taskAnswer.getTextContentId());
+
+            // 找到并修改当前试卷的任务状态
+            List<TaskItemAnswerPo> taskItemAnswerPos = textContent.getContentArray(TaskItemAnswerPo.class);
+            if (!CollectionUtils.isEmpty(taskItemAnswerPos)) {
+                taskItemAnswerPos.stream()
+                        .filter(task -> Objects.equals(task.getExamPaperAnswerId(), answer.getId()))
+                        .findFirst()
+                        .ifPresent(item -> item.setStatus(answer.getStatus()));
+            }
+            textContent.setContent(taskItemAnswerPos);
+            textContentService.updateById(textContent);
+        }
+
+        return userScore;
     }
 
     /**

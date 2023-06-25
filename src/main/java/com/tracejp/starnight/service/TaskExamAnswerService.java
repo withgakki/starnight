@@ -19,9 +19,14 @@ public interface TaskExamAnswerService extends IService<TaskExamAnswerEntity> {
     List<TaskExamAnswerEntity> listByUserId(Long userId);
 
     /**
+     * 通过用户id、任务id 获取任务考试答案实体
+     */
+    TaskExamAnswerEntity listByUserIdTaskId(Long userId, Long taskId);
+
+    /**
      * 通过用户id、任务ids 获取任务考试答案列表
      */
-    List<TaskExamAnswerEntity> listByUserIdTaskIds(Long userId, List<Long> taskIds);
+    List<TaskExamAnswerEntity> listByUserIdTaskId(Long userId, List<Long> taskIds);
 
     /**
      * 保存 通过试卷和答卷

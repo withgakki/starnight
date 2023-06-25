@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.tracejp.starnight.entity.ExamPaperAnswerEntity;
 import com.tracejp.starnight.entity.UserEntity;
 import com.tracejp.starnight.entity.bo.ExamPaperAnswerBo;
-import com.tracejp.starnight.entity.vo.student.ExamPaperAnswerSubmitVo;
+import com.tracejp.starnight.entity.vo.ExamPaperAnswerSubmitVo;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -34,6 +34,17 @@ public interface ExamPaperAnswerService extends IService<ExamPaperAnswerEntity> 
      * 保存答案
      */
     CompletableFuture<Void> saveAnswerBoAsync(ExamPaperAnswerBo examPaperAnswerBo);
+
+    /**
+     * 通过答卷id获取答卷信息
+     */
+    ExamPaperAnswerSubmitVo getAnswerSubmitVoById(Long id);
+
+    /**
+     * 批改试卷
+     * @return 分数
+     */
+    Integer judge(ExamPaperAnswerSubmitVo submitVo);
 
 }
 
