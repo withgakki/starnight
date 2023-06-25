@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -111,6 +112,15 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionDao, QuestionEntity
         questionVo.setAnalyze(questionPo.getAnalyze());
 
         return questionVo;
+    }
+
+    @Override
+    public List<QuestionVo> getQuestionVo(List<Long> ids) {
+        List<QuestionEntity> questionEntities = listByIds(ids);
+        if (CollectionUtils.isEmpty(questionEntities)) {
+            return new ArrayList<>();
+        }
+        return questionEntities.stream().map(this::getQuestionVo).collect(Collectors.toList());
     }
 
     @Transactional

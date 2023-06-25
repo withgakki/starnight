@@ -3,6 +3,7 @@ package com.tracejp.starnight.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tracejp.starnight.entity.ExamPaperQuestionAnswerEntity;
 import com.tracejp.starnight.entity.vo.ExamPaperAnswerSubmitItemVo;
+import com.tracejp.starnight.entity.vo.student.QuestionAnswerErrorVo;
 
 import java.util.List;
 
@@ -11,6 +12,12 @@ import java.util.List;
  * @since 2023-05-20 23:19:38
  */
 public interface ExamPaperQuestionAnswerService extends IService<ExamPaperQuestionAnswerEntity> {
+
+
+    /**
+     * 分页 QuestionAnswerErrorVo
+     */
+    List<QuestionAnswerErrorVo> listQuestionAnswerErrorVo(Long userId);
 
     /**
      * 通过答卷id 查询问题集合

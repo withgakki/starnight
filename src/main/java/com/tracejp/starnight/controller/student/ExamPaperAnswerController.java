@@ -4,17 +4,20 @@ import com.tracejp.starnight.controller.BaseController;
 import com.tracejp.starnight.entity.ExamPaperAnswerEntity;
 import com.tracejp.starnight.entity.UserEntity;
 import com.tracejp.starnight.entity.base.AjaxResult;
+import com.tracejp.starnight.entity.base.TableDataInfo;
 import com.tracejp.starnight.entity.bo.ExamPaperAnswerBo;
-import com.tracejp.starnight.entity.vo.ExamPaperVo;
 import com.tracejp.starnight.entity.vo.ExamPaperAnswerSubmitVo;
+import com.tracejp.starnight.entity.vo.ExamPaperVo;
 import com.tracejp.starnight.entity.vo.student.ExamPaperInfoVo;
 import com.tracejp.starnight.service.ExamPaperAnswerService;
 import com.tracejp.starnight.service.ExamPaperService;
 import com.tracejp.starnight.utils.ScoreUtils;
 import com.tracejp.starnight.utils.SecurityUtils;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * <p>  <p/>
@@ -22,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
  * @author traceJP
  * @since 2023/6/11 10:36
  */
-@Log4j
+@Slf4j
 @RestController("studentExamPaperAnswerController")
 @RequestMapping(value = "/student/exampaperanswer")
 public class ExamPaperAnswerController extends BaseController {
@@ -32,6 +35,18 @@ public class ExamPaperAnswerController extends BaseController {
 
     @Autowired
     private ExamPaperService examPaperService;
+
+    /**
+     * 列表分页
+     */
+    @GetMapping("/list")
+    public TableDataInfo list() {
+        ExamPaperAnswerEntity entity = new ExamPaperAnswerEntity();
+        entity.setCreateBy(SecurityUtils.getUserId());
+        startPage();
+        List<ExamPaperAnswerEntity> list = examPaperAnswerService.listPage(entity);
+        return getDataTable(list);
+    }
 
     /**
      * 提交答案

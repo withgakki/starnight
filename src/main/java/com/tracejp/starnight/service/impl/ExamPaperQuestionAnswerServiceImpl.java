@@ -8,14 +8,20 @@ import com.tracejp.starnight.entity.ExamPaperQuestionAnswerEntity;
 import com.tracejp.starnight.entity.TextContentEntity;
 import com.tracejp.starnight.entity.enums.QuestionTypeEnum;
 import com.tracejp.starnight.entity.vo.ExamPaperAnswerSubmitItemVo;
+import com.tracejp.starnight.entity.vo.QuestionVo;
+import com.tracejp.starnight.entity.vo.student.QuestionAnswerErrorVo;
 import com.tracejp.starnight.service.ExamPaperQuestionAnswerService;
+import com.tracejp.starnight.service.QuestionService;
 import com.tracejp.starnight.service.TextContentService;
 import com.tracejp.starnight.utils.ArrayStringUtils;
 import com.tracejp.starnight.utils.ScoreUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author traceJP
@@ -26,6 +32,30 @@ public class ExamPaperQuestionAnswerServiceImpl extends ServiceImpl<ExamPaperQue
 
     @Autowired
     private TextContentService textContentService;
+
+    @Autowired
+    private QuestionService questionService;
+
+    @Autowired
+    private ExamPaperQuestionAnswerDao examPaperQuestionAnswerDao;
+
+    @Override
+    public List<QuestionAnswerErrorVo> listQuestionAnswerErrorVo(Long userId) {
+        List<QuestionAnswerErrorVo> vos = examPaperQuestionAnswerDao.listQuestionAnswerErrorVo(userId);
+        if (CollectionUtils.isEmpty(vos)) {
+            return vos;
+        }
+        List<Long> questionIds = vos.stream()
+                .map(QuestionAnswerErrorVo::getQuestionId)
+                .collect(Collectors.toList());
+        List<QuestionVo> questionVos = questionService.getQuestionVo(questionIds);
+        Map<Long, QuestionVo> findMap = questionVos.stream().collect(Collectors.toMap(QuestionVo::getId, q -> q));
+        for (QuestionAnswerErrorVo vo : vos) {
+            QuestionVo questionVo = findMap.get(vo.getQuestionId());
+            vo.setQuestion(questionVo);
+        }
+        return vos;
+    }
 
     @Override
     public List<ExamPaperQuestionAnswerEntity> listByAnswerId(Long answerId) {

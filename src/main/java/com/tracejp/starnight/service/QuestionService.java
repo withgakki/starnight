@@ -28,6 +28,11 @@ public interface QuestionService extends IService<QuestionEntity> {
     QuestionVo getQuestionVo(QuestionEntity question);
 
     /**
+     * 通过 ids 获取 vos
+     */
+    List<QuestionVo> getQuestionVo(List<Long> ids);
+
+    /**
      * 保存VO
      */
     void saveQuestionVo(QuestionVo question, Long userId);

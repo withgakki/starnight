@@ -25,6 +25,9 @@
     <select id="listPage" resultMap="examPaperAnswerMap">
         SELECT * FROM `t_exam_paper_answer`
         <where>
+            <if test="createBy != null and createBy != ''">
+                AND `create_by` = #{createBy}
+            </if>
             <if test="subjectId != null and subjectId != ''">
                 AND `subject_id` = #{subjectId}
             </if>

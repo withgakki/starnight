@@ -22,5 +22,25 @@
         <result property="itemOrder" column="item_order"/>
     </resultMap>
 
+    <resultMap type="com.tracejp.starnight.entity.vo.student.QuestionAnswerErrorVo" id="examPaperQuestionAnswerErrorVoMap">
+        <result property="questionId" column="question_id"/>
+        <result property="questionType" column="question_type"/>
+        <result property="subjectId" column="subject_id"/>
+        <result property="subjectName" column="subject_name"/>
+        <result property="errorCount" column="error_count"/>
+    </resultMap>
+
+    <select id="listQuestionAnswerErrorVo" resultMap="examPaperQuestionAnswerErrorVoMap">
+        SELECT `question_id`,
+               `question_type`,
+               `subject_id`,
+               `name` AS `subject_name`,
+               COUNT(`question_id`) AS `error_count`
+        FROM `t_exam_paper_question_answer` AS `t1`,
+             `t_subject` AS `t2`
+        WHERE `t1`.subject_id = `t2`.id
+          AND `do_right` = FALSE AND `create_by` = #{userId}
+        GROUP BY `question_id`, `question_type`, `subject_id`
+    </select>
 
 </mapper>
