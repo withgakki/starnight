@@ -40,7 +40,7 @@ public class LoginAuthProvider implements AuthenticationProvider {
         String username = (String) authentication.getPrincipal();
         String password = (String) authentication.getCredentials();
         RoleEnum role = (RoleEnum) authentication.getDetails();
-        UserEntity user = userService.getByAccount(username);
+        UserEntity user = userService.getByUserName(username);
 
         // 登录失败
         if (user == null) {

@@ -2,21 +2,19 @@ package com.tracejp.starnight.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tracejp.starnight.dao.TaskExamAnswerDao;
 import com.tracejp.starnight.entity.ExamPaperAnswerEntity;
 import com.tracejp.starnight.entity.ExamPaperEntity;
+import com.tracejp.starnight.entity.TaskExamAnswerEntity;
 import com.tracejp.starnight.entity.TextContentEntity;
 import com.tracejp.starnight.entity.po.TaskItemAnswerPo;
+import com.tracejp.starnight.service.TaskExamAnswerService;
 import com.tracejp.starnight.service.TextContentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-
-import com.tracejp.starnight.dao.TaskExamAnswerDao;
-import com.tracejp.starnight.entity.TaskExamAnswerEntity;
-import com.tracejp.starnight.service.TaskExamAnswerService;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 

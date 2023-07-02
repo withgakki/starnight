@@ -126,4 +126,10 @@ public class Constants {
      */
     public static final String[] JOB_ERROR_STR = {"java.net.URL", "javax.naming.InitialContext", "org.yaml.snakeyaml",
             "org.springframework", "org.apache", "com.tracejp.yozu.common.core.utils.file"};
+
+    /**
+     * 头像文件上传限制大小
+     */
+    public static final long AVATAR_FILE_SIZE = 5 * 1024 * 1024;
+
 }

@@ -17,9 +17,9 @@ public interface UserService extends IService<UserEntity> {
     List<UserEntity> listPage(UserEntity user);
 
     /**
-     * @param account 账号（用户名 | 手机号）
+     * @param username 账号（用户名）
      */
-    UserEntity getByAccount(String account);
+    UserEntity getByUserName(String username);
 
     void changeStatus(Long id);
 

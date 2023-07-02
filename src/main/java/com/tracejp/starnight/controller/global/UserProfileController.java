@@ -4,6 +4,8 @@ import com.tracejp.starnight.controller.BaseController;
 import com.tracejp.starnight.entity.UserEntity;
 import com.tracejp.starnight.entity.base.AjaxResult;
 import com.tracejp.starnight.entity.base.LoginUser;
+import com.tracejp.starnight.entity.dto.UserDto;
+import com.tracejp.starnight.entity.param.UpdatePwdParam;
 import com.tracejp.starnight.entity.param.UserProfileParam;
 import com.tracejp.starnight.handler.file.IFileHandler;
 import com.tracejp.starnight.handler.token.TokenHandler;
@@ -16,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Date;
+
+import static com.tracejp.starnight.constants.Constants.AVATAR_FILE_SIZE;
 
 /**
  * <p>  <p/>
@@ -40,7 +44,8 @@ public class UserProfileController extends BaseController {
     @GetMapping
     public AjaxResult profile() {
         LoginUser loginUser = SecurityUtils.getLoginUser();
-        return success(loginUser.getUser());
+        UserDto user = new UserDto().convertFrom(loginUser.getUser());
+        return success(user);
     }
 
     /**
@@ -68,9 +73,12 @@ public class UserProfileController extends BaseController {
      * 重置密码
      */
     @PutMapping("/updatePwd")
-    public AjaxResult updatePwd(String oldPassword, String newPassword) {
+    public AjaxResult updatePwd(@RequestBody UpdatePwdParam param) {
+        String oldPassword = param.getOldPassword();
+        String newPassword = param.getNewPassword();
+
         String username = SecurityUtils.getUsername();
-        UserEntity user = userService.getByAccount(username);
+        UserEntity user = userService.getByUserName(username);
         String password = user.getPassword();
         if (!SecurityUtils.matchesPassword(oldPassword, password)) {
             return error("修改密码失败，旧密码错误");
@@ -99,6 +107,11 @@ public class UserProfileController extends BaseController {
     @PostMapping("/avatar")
     public AjaxResult avatar(@RequestParam("avatarfile") MultipartFile file) throws Exception {
         if (!file.isEmpty()) {
+
+            if (file.getSize() > AVATAR_FILE_SIZE) {
+                return error("上传图片大小不能超过" + AVATAR_FILE_SIZE / 1024 / 1024 + "M");
+            }
+
             LoginUser loginUser = SecurityUtils.getLoginUser();
             // 上传
             String fileUrl = fileHandler.uploadFile(file);

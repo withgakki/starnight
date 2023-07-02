@@ -33,6 +33,10 @@ spring:
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
+  # 文件上传大小限制
+  servlet:
+    multipart:
+      max-file-size: 10MB
 
 # Mybatis 配置
 mybatis:

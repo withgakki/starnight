@@ -28,9 +28,9 @@ public class UserServiceImpl extends ServiceImpl<UserDao, UserEntity> implements
     }
 
     @Override
-    public UserEntity getByAccount(String account) {
+    public UserEntity getByUserName(String username) {
         LambdaQueryWrapper<UserEntity> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(UserEntity::getUserName, account).or().eq(UserEntity::getPhone, account);
+        wrapper.eq(UserEntity::getUserName, username);
         return getOne(wrapper);
     }
 
