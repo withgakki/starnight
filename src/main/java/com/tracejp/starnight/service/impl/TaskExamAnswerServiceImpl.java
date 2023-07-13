@@ -66,7 +66,7 @@ public class TaskExamAnswerServiceImpl extends ServiceImpl<TaskExamAnswerDao, Ta
 
         // 保存任务实体
         TaskExamAnswerEntity taskExamAnswerEntity = new TaskExamAnswerEntity();
-        taskExamAnswerEntity.setCreateBy(examPaper.getCreateBy());
+        taskExamAnswerEntity.setCreateBy(examPaperAnswerEntity.getCreateBy());
         taskExamAnswerEntity.setTaskExamId(examPaper.getTaskExamId());
         taskExamAnswerEntity.setTextContentId(textContentEntity.getId());
         save(taskExamAnswerEntity);

@@ -75,3 +75,4 @@ starnight:
     ignores:
       - /api/user/login/**
       - /api/user/logout/**
+      - /api/user/register/**
