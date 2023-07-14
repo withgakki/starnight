@@ -29,9 +29,14 @@ public interface TaskExamAnswerService extends IService<TaskExamAnswerEntity> {
     List<TaskExamAnswerEntity> listByUserIdTaskId(Long userId, List<Long> taskIds);
 
     /**
-     * 保存 通过试卷和答卷
+     * 保存或修改 通过试卷和答卷
      */
-    void saveByPaperAnswer(ExamPaperEntity examPaper, ExamPaperAnswerEntity examPaperAnswerEntity);
+    void saveOrUpdateByPaperAnswer(ExamPaperEntity examPaper, ExamPaperAnswerEntity examPaperAnswerEntity);
+
+    /**
+     * 删除任务中试卷（变更任务试卷状态）
+     */
+    void removeByAnswers(List<ExamPaperAnswerEntity> paperListByTask);
 
 }
 

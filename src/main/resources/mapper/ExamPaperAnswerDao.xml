@@ -3,7 +3,7 @@
 
 <mapper namespace="com.tracejp.starnight.dao.ExamPaperAnswerDao">
 
-	<!-- 可根据自己的需求，是否要使用 -->
+    <!-- 可根据自己的需求，是否要使用 -->
     <resultMap type="com.tracejp.starnight.entity.ExamPaperAnswerEntity" id="examPaperAnswerMap">
         <result property="id" column="id"/>
         <result property="createTime" column="create_time"/>
@@ -22,6 +22,26 @@
         <result property="taskExamId" column="task_exam_id"/>
     </resultMap>
 
+    <resultMap type="com.tracejp.starnight.entity.vo.ExamPaperAnswerVo" id="examPaperAnswerVoMap">
+        <result property="id" column="id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="examPaperId" column="exam_paper_id"/>
+        <result property="paperName" column="paper_name"/>
+        <result property="paperType" column="paper_type"/>
+        <result property="subjectId" column="subject_id"/>
+        <result property="systemScore" column="system_score"/>
+        <result property="userScore" column="user_score"/>
+        <result property="paperScore" column="paper_score"/>
+        <result property="questionCorrect" column="question_correct"/>
+        <result property="questionCount" column="question_count"/>
+        <result property="doTime" column="do_time"/>
+        <result property="status" column="status"/>
+        <result property="taskExamId" column="task_exam_id"/>
+        <result property="userName" column="user_name"/>
+        <result property="realName" column="real_name"/>
+    </resultMap>
+
     <select id="listPage" resultMap="examPaperAnswerMap">
         SELECT * FROM `t_exam_paper_answer`
         <where>
@@ -32,6 +52,25 @@
                 AND `subject_id` = #{subjectId}
             </if>
         </where>
+    </select>
+
+    <select id="listPageVo" resultMap="examPaperAnswerVoMap">
+        SELECT t1.`id`, t1.`create_time`, t1.`create_by`, t1.`exam_paper_id`, t1.`paper_name`, t1.`paper_type`,
+        t1.`subject_id`,
+        t1.`system_score`, t1.`user_score`, t1.`paper_score`, t1.`question_correct`, t1.`question_count`, t1.`do_time`,
+        t1.`status`,
+        t1.`task_exam_id`, t2.`user_name`, t2.`real_name`
+        FROM `t_exam_paper_answer` AS t1, `t_user` AS t2
+        WHERE t1.`create_by` = t2.`id`
+        <if test="createBy != null and createBy != ''">
+            AND t1.`create_by` = #{createBy}
+        </if>
+        <if test="subjectId != null and subjectId != ''">
+            AND t1.`subject_id` = #{subjectId}
+        </if>
+        <if test="status != null and status != ''">
+            AND t1.`status` = #{status}
+        </if>
     </select>
 
 </mapper>

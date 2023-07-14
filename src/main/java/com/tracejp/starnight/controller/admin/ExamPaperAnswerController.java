@@ -5,6 +5,7 @@ import com.tracejp.starnight.entity.ExamPaperAnswerEntity;
 import com.tracejp.starnight.entity.base.AjaxResult;
 import com.tracejp.starnight.entity.base.TableDataInfo;
 import com.tracejp.starnight.entity.vo.ExamPaperAnswerSubmitVo;
+import com.tracejp.starnight.entity.vo.ExamPaperAnswerVo;
 import com.tracejp.starnight.service.ExamPaperAnswerService;
 import com.tracejp.starnight.utils.ScoreUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,12 +26,12 @@ public class ExamPaperAnswerController extends BaseController {
     private ExamPaperAnswerService examPaperAnswerService;
 
     /**
-     * 列表
+     * 列表 vo
      */
     @GetMapping("/list")
     public TableDataInfo list(ExamPaperAnswerEntity examPaperAnswer) {
         startPage();
-        List<ExamPaperAnswerEntity> list = examPaperAnswerService.listPage(examPaperAnswer);
+        List<ExamPaperAnswerVo> list = examPaperAnswerService.listPageVo(examPaperAnswer);
         return getDataTable(list);
     }
 
@@ -42,6 +43,15 @@ public class ExamPaperAnswerController extends BaseController {
     public AjaxResult judge(@RequestBody ExamPaperAnswerSubmitVo submitVo) {
         Integer score = examPaperAnswerService.judge(submitVo);
         return success(ScoreUtils.scoreToVM(score));
+    }
+
+    /**
+     * 删除
+     */
+    @DeleteMapping("/{ids}")
+    public AjaxResult delete(@PathVariable List<Long> ids) {
+        examPaperAnswerService.removeAllByIds(ids);
+        return success();
     }
 
 }

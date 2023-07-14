@@ -77,6 +77,13 @@ public class ExamPaperQuestionAnswerServiceImpl extends ServiceImpl<ExamPaperQue
         return vo;
     }
 
+    @Override
+    public boolean removeByPaperAnswerIds(List<Long> idList) {
+        LambdaQueryWrapper<ExamPaperQuestionAnswerEntity> wrapper = Wrappers.lambdaQuery(ExamPaperQuestionAnswerEntity.class)
+                .in(ExamPaperQuestionAnswerEntity::getExamPaperAnswerId, idList);
+        return remove(wrapper);
+    }
+
     private void setAnswerSubmitItemVoProperties(ExamPaperAnswerSubmitItemVo vo,
                                                  ExamPaperQuestionAnswerEntity questionAnswerEntity) {
         if (QuestionTypeEnum.needSaveTextContent(questionAnswerEntity.getQuestionType())) {

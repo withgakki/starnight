@@ -2,6 +2,7 @@ package com.tracejp.starnight.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.tracejp.starnight.entity.ExamPaperAnswerEntity;
+import com.tracejp.starnight.entity.vo.ExamPaperAnswerVo;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -14,5 +15,7 @@ import java.util.List;
 public interface ExamPaperAnswerDao extends BaseMapper<ExamPaperAnswerEntity> {
 
     List<ExamPaperAnswerEntity> listPage(ExamPaperAnswerEntity examPaperAnswer);
+
+    List<ExamPaperAnswerVo> listPageVo(ExamPaperAnswerEntity examPaperAnswer);
 
 }

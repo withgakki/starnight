@@ -5,6 +5,7 @@ import com.tracejp.starnight.entity.ExamPaperAnswerEntity;
 import com.tracejp.starnight.entity.UserEntity;
 import com.tracejp.starnight.entity.bo.ExamPaperAnswerBo;
 import com.tracejp.starnight.entity.vo.ExamPaperAnswerSubmitVo;
+import com.tracejp.starnight.entity.vo.ExamPaperAnswerVo;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -19,6 +20,11 @@ public interface ExamPaperAnswerService extends IService<ExamPaperAnswerEntity> 
      * 列表
      */
     List<ExamPaperAnswerEntity> listPage(ExamPaperAnswerEntity examPaperAnswer);
+
+    /**
+     * 列表 vo
+     */
+    List<ExamPaperAnswerVo> listPageVo(ExamPaperAnswerEntity examPaperAnswer);
 
     /**
      * 构造 ExamPaperAnswerBo 业务模型
@@ -45,6 +51,11 @@ public interface ExamPaperAnswerService extends IService<ExamPaperAnswerEntity> 
      * @return 分数
      */
     Integer judge(ExamPaperAnswerSubmitVo submitVo);
+
+    /**
+     * 级联删除答卷
+     */
+    void removeAllByIds(List<Long> idList);
 
 }
 

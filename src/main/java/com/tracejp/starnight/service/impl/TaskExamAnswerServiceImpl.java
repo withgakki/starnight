@@ -14,9 +14,11 @@ import com.tracejp.starnight.service.TextContentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author traceJP
@@ -53,23 +55,59 @@ public class TaskExamAnswerServiceImpl extends ServiceImpl<TaskExamAnswerDao, Ta
 
     @Transactional
     @Override
-    public void saveByPaperAnswer(ExamPaperEntity examPaper, ExamPaperAnswerEntity examPaperAnswerEntity) {
-        // 保存任务完成情况
+    public void saveOrUpdateByPaperAnswer(ExamPaperEntity examPaper, ExamPaperAnswerEntity examPaperAnswerEntity) {
+        // 构造试卷任务项
         TaskItemAnswerPo taskItemAnswerPo = new TaskItemAnswerPo();
         taskItemAnswerPo.setExamPaperId(examPaper.getId());
         taskItemAnswerPo.setExamPaperAnswerId(examPaperAnswerEntity.getId());
         taskItemAnswerPo.setStatus(examPaperAnswerEntity.getStatus());
-        List<TaskItemAnswerPo> taskItemAnswerPos = Collections.singletonList(taskItemAnswerPo);
-        TextContentEntity textContentEntity = new TextContentEntity();
-        textContentEntity.setContent(taskItemAnswerPos);
-        textContentService.save(textContentEntity);
 
-        // 保存任务实体
-        TaskExamAnswerEntity taskExamAnswerEntity = new TaskExamAnswerEntity();
-        taskExamAnswerEntity.setCreateBy(examPaperAnswerEntity.getCreateBy());
-        taskExamAnswerEntity.setTaskExamId(examPaper.getTaskExamId());
-        taskExamAnswerEntity.setTextContentId(textContentEntity.getId());
-        save(taskExamAnswerEntity);
+        LambdaQueryWrapper<TaskExamAnswerEntity> wrapper = Wrappers.lambdaQuery(TaskExamAnswerEntity.class)
+                .eq(TaskExamAnswerEntity::getCreateBy, examPaperAnswerEntity.getCreateBy())
+                .eq(TaskExamAnswerEntity::getTaskExamId, examPaper.getTaskExamId());
+        TaskExamAnswerEntity taskExamAnswer = getOne(wrapper);
+        if (taskExamAnswer == null) {  // 保存
+            // 保存任务完成情况
+            List<TaskItemAnswerPo> taskItemAnswerPos = Collections.singletonList(taskItemAnswerPo);
+            TextContentEntity textContentEntity = new TextContentEntity();
+            textContentEntity.setContent(taskItemAnswerPos);
+            textContentService.save(textContentEntity);
+            // 保存任务实体
+            TaskExamAnswerEntity taskExamAnswerEntity = new TaskExamAnswerEntity();
+            taskExamAnswerEntity.setCreateBy(examPaperAnswerEntity.getCreateBy());
+            taskExamAnswerEntity.setTaskExamId(examPaper.getTaskExamId());
+            taskExamAnswerEntity.setTextContentId(textContentEntity.getId());
+            save(taskExamAnswerEntity);
+        } else {  // 修改
+            TextContentEntity textContent = textContentService.getById(taskExamAnswer.getTextContentId());
+            List<TaskItemAnswerPo> taskItemAnswerPos = textContent.getContentArray(TaskItemAnswerPo.class);
+            taskItemAnswerPos.add(taskItemAnswerPo);
+            textContent.setContent(taskItemAnswerPos);
+            textContentService.updateById(textContent);
+        }
+    }
+
+    @Override
+    public void removeByAnswers(List<ExamPaperAnswerEntity> paperListByTask) {
+        for(ExamPaperAnswerEntity item : paperListByTask) {
+            LambdaQueryWrapper<TaskExamAnswerEntity> wrapper = Wrappers.lambdaQuery(TaskExamAnswerEntity.class)
+                    .eq(TaskExamAnswerEntity::getTaskExamId, item.getTaskExamId());
+            List<TaskExamAnswerEntity> taskExamAnswerEntities = list(wrapper);
+
+            // 重新保存任务
+            for(TaskExamAnswerEntity taskExamAnswerEntity : taskExamAnswerEntities) {
+                TextContentEntity textContentEntity = textContentService.getById(taskExamAnswerEntity.getTextContentId());
+                List<TaskItemAnswerPo> taskItemAnswerPos = textContentEntity.getContentArray(TaskItemAnswerPo.class);
+                taskItemAnswerPos.removeIf(po -> Objects.equals(po.getExamPaperAnswerId(), item.getId()));
+                if (taskItemAnswerPos.isEmpty()) {
+                    textContentService.removeById(textContentEntity.getId());
+                    removeById(taskExamAnswerEntity.getId());
+                } else {
+                    textContentEntity.setContent(taskItemAnswerPos);
+                    textContentService.updateById(textContentEntity);
+                }
+            }
+        }
     }
 
 }

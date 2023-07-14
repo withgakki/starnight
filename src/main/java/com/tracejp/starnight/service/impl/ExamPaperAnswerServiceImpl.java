@@ -14,6 +14,7 @@ import com.tracejp.starnight.entity.po.ExamPaperTitleItemPo;
 import com.tracejp.starnight.entity.po.TaskItemAnswerPo;
 import com.tracejp.starnight.entity.vo.ExamPaperAnswerSubmitItemVo;
 import com.tracejp.starnight.entity.vo.ExamPaperAnswerSubmitVo;
+import com.tracejp.starnight.entity.vo.ExamPaperAnswerVo;
 import com.tracejp.starnight.exception.ServiceException;
 import com.tracejp.starnight.service.*;
 import com.tracejp.starnight.utils.ArrayStringUtils;
@@ -63,6 +64,11 @@ public class ExamPaperAnswerServiceImpl extends ServiceImpl<ExamPaperAnswerDao, 
     @Override
     public List<ExamPaperAnswerEntity> listPage(ExamPaperAnswerEntity examPaperAnswer) {
         return examPaperAnswerDao.listPage(examPaperAnswer);
+    }
+
+    @Override
+    public List<ExamPaperAnswerVo> listPageVo(ExamPaperAnswerEntity examPaperAnswer) {
+        return examPaperAnswerDao.listPageVo(examPaperAnswer);
     }
 
     @Override
@@ -220,7 +226,7 @@ public class ExamPaperAnswerServiceImpl extends ServiceImpl<ExamPaperAnswerDao, 
 
             // 任务试卷更新
             if (ExamPaperTypeEnum.fromCode(examPaper.getPaperType()) == ExamPaperTypeEnum.TASK) {
-                taskExamAnswerService.saveByPaperAnswer(examPaper, examPaperAnswerEntity);
+                taskExamAnswerService.saveOrUpdateByPaperAnswer(examPaper, examPaperAnswerEntity);
             }
 
         }, threadPoolExecutor);
@@ -337,6 +343,28 @@ public class ExamPaperAnswerServiceImpl extends ServiceImpl<ExamPaperAnswerDao, 
         }
 
         return userScore;
+    }
+
+    @Transactional
+    public void removeAllByIds(List<Long> idList) {
+        // 删除答题记录
+        examPaperQuestionAnswerService.removeByPaperAnswerIds(idList);
+
+        // 任务记录删除
+        if (!CollectionUtils.isEmpty(idList)) {
+            List<ExamPaperAnswerEntity> paperAnswerList = listByIds(idList);
+            if (!CollectionUtils.isEmpty(paperAnswerList)) {
+                List<ExamPaperAnswerEntity> paperListByTask = paperAnswerList.stream()
+                        .filter(paperAnswer -> paperAnswer.getTaskExamId() != null)
+                        .collect(Collectors.toList());
+                if (!CollectionUtils.isEmpty(paperListByTask)) {
+                    taskExamAnswerService.removeByAnswers(paperListByTask);
+                }
+            }
+        }
+
+        // 删除答卷
+        removeByIds(idList);
     }
 
     /**

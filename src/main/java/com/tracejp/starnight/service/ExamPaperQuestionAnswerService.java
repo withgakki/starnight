@@ -5,6 +5,8 @@ import com.tracejp.starnight.entity.ExamPaperQuestionAnswerEntity;
 import com.tracejp.starnight.entity.vo.ExamPaperAnswerSubmitItemVo;
 import com.tracejp.starnight.entity.vo.student.QuestionAnswerErrorVo;
 
+import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -28,6 +30,11 @@ public interface ExamPaperQuestionAnswerService extends IService<ExamPaperQuesti
      * 通过 entity 构造 ExamPaperAnswerSubmitItemVo
      */
     ExamPaperAnswerSubmitItemVo buildAnswerSubmitItemVo(ExamPaperQuestionAnswerEntity questionAnswerEntity);
+
+    /**
+     * 通过答卷id 删除答题记录
+     */
+    boolean removeByPaperAnswerIds(List<Long> idList);
 
 }
 
