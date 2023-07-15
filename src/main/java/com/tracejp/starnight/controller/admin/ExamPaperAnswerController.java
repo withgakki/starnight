@@ -2,11 +2,17 @@ package com.tracejp.starnight.controller.admin;
 
 import com.tracejp.starnight.controller.BaseController;
 import com.tracejp.starnight.entity.ExamPaperAnswerEntity;
+import com.tracejp.starnight.entity.UserEntity;
 import com.tracejp.starnight.entity.base.AjaxResult;
 import com.tracejp.starnight.entity.base.TableDataInfo;
+import com.tracejp.starnight.entity.dto.UserDto;
+import com.tracejp.starnight.entity.vo.ExamPaperAndAnswerVo;
 import com.tracejp.starnight.entity.vo.ExamPaperAnswerSubmitVo;
 import com.tracejp.starnight.entity.vo.ExamPaperAnswerVo;
+import com.tracejp.starnight.entity.vo.ExamPaperVo;
 import com.tracejp.starnight.service.ExamPaperAnswerService;
+import com.tracejp.starnight.service.ExamPaperService;
+import com.tracejp.starnight.service.UserService;
 import com.tracejp.starnight.utils.ScoreUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +31,12 @@ public class ExamPaperAnswerController extends BaseController {
     @Autowired
     private ExamPaperAnswerService examPaperAnswerService;
 
+    @Autowired
+    private ExamPaperService examPaperService;
+
+    @Autowired
+    private UserService userService;
+
     /**
      * 列表 vo
      */
@@ -33,6 +45,25 @@ public class ExamPaperAnswerController extends BaseController {
         startPage();
         List<ExamPaperAnswerVo> list = examPaperAnswerService.listPageVo(examPaperAnswer);
         return getDataTable(list);
+    }
+
+    /**
+     * 试卷&答卷查询 答卷id
+     */
+    @GetMapping("/{id}")
+    public AjaxResult info(@PathVariable Long id) {
+        ExamPaperAndAnswerVo vo = new ExamPaperAndAnswerVo();
+        ExamPaperAnswerEntity answerEntity = examPaperAnswerService.getById(id);
+        if (answerEntity == null) {
+            return error("答卷不存在");
+        }
+        ExamPaperVo examPaperVo = examPaperService.getExamPaperVo(answerEntity.getExamPaperId());
+        ExamPaperAnswerSubmitVo submitVo = examPaperAnswerService.getAnswerSubmitVoById(id);
+        UserEntity userEntity = userService.getById(answerEntity.getCreateBy());
+        vo.setPaper(examPaperVo);
+        vo.setAnswer(submitVo);
+        vo.setUser(new UserDto().convertFrom(userEntity));
+        return success(vo);
     }
 
     /**

@@ -38,5 +38,10 @@ public interface TaskExamAnswerService extends IService<TaskExamAnswerEntity> {
      */
     void removeByAnswers(List<ExamPaperAnswerEntity> paperListByTask);
 
+    /**
+     * 通过任务试卷ids 删除任务答卷
+     */
+    boolean removeByTaskIds(List<Long> taskIds);
+
 }
 

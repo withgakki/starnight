@@ -3,7 +3,6 @@ package com.tracejp.starnight.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tracejp.starnight.dao.ExamPaperDao;
 import com.tracejp.starnight.dao.TaskExamDao;
 import com.tracejp.starnight.entity.*;
 import com.tracejp.starnight.entity.po.TaskItemAnswerPo;
@@ -46,10 +45,6 @@ public class TaskExamServiceImpl extends ServiceImpl<TaskExamDao, TaskExamEntity
 
     @Autowired
     private TaskExamDao taskExamDao;
-
-    @Autowired
-    private ExamPaperDao examPaperDao;
-
 
     @Override
     public List<TaskExamEntity> listPage(TaskExamEntity taskExam) {
@@ -139,7 +134,8 @@ public class TaskExamServiceImpl extends ServiceImpl<TaskExamDao, TaskExamEntity
             List<Long> ids = taskItemPosLast.stream()
                     .map(TaskItemPo::getExamPaperId)
                     .collect(Collectors.toList());
-            examPaperDao.updateTaskByIds(null, ids);
+            examPaperService.setTaskIdNullByIds(ids);
+
         }
         examPaperService.updateTaskPaperRelation(taskExam.getId(), taskExam.getPaperItems());
 
@@ -186,8 +182,12 @@ public class TaskExamServiceImpl extends ServiceImpl<TaskExamDao, TaskExamEntity
     public void removeTaskByIds(List<Long> ids) {
         // 删除任务基本信息
         removeByIds(ids);
+
         // 删除任务试卷关联信息
-        examPaperDao.updateTaskByIds(null, ids);
+        examPaperService.setTaskIdNullByIds(ids);
+
+        // 删除任务答卷关联信息
+        taskExamAnswerService.removeByTaskIds(ids);
     }
 
     /**

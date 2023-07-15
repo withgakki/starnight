@@ -110,4 +110,11 @@ public class TaskExamAnswerServiceImpl extends ServiceImpl<TaskExamAnswerDao, Ta
         }
     }
 
+    @Override
+    public boolean removeByTaskIds(List<Long> taskIds) {
+        LambdaQueryWrapper<TaskExamAnswerEntity> wrapper = Wrappers.lambdaQuery(TaskExamAnswerEntity.class)
+                .in(TaskExamAnswerEntity::getTaskExamId, taskIds);
+        return remove(wrapper);
+    }
+
 }

@@ -308,25 +308,17 @@ public class ExamPaperAnswerServiceImpl extends ServiceImpl<ExamPaperAnswerDao, 
         answer.setUserScore(userScore);
         answer.setQuestionCorrect(correctNum);
         answer.setStatus(ExamPaperAnswerStatusEnum.Complete.getCode());
-        CompletableFuture<Void> updateEntityTask = CompletableFuture.runAsync(() -> {
-            updateById(answer);
-            examPaperQuestionAnswerService.updateBatchById(updateEntities);
-        }).whenComplete((result, e) -> {
-            if (e != null) {
-                log.error("数据库修改异常");
-                throw new ServiceException("数据库修改异常");
-            }
-        });
+        this.updateById(answer);
+        examPaperQuestionAnswerService.updateBatchById(updateEntities);
 
         // 任务试卷状态更新
         ExamPaperTypeEnum examPaperType = ExamPaperTypeEnum.fromCode(answer.getPaperType());
         if (examPaperType == ExamPaperTypeEnum.TASK) {
             ExamPaperEntity examPaperEntity = examPaperService.getById(answer.getExamPaperId());
             if (examPaperEntity == null) {
-                updateEntityTask.cancel(true);
                 throw new ServiceException("试卷未找到");
             }
-            TaskExamAnswerEntity taskAnswer = taskExamAnswerService.listByUserIdTaskId(examPaperEntity.getCreateBy(),
+            TaskExamAnswerEntity taskAnswer = taskExamAnswerService.listByUserIdTaskId(answer.getCreateBy(),
                     examPaperEntity.getTaskExamId());
             TextContentEntity textContent = textContentService.getById(taskAnswer.getTextContentId());
 

@@ -1,6 +1,8 @@
 package com.tracejp.starnight.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tracejp.starnight.dao.ExamPaperDao;
 import com.tracejp.starnight.entity.ExamPaperEntity;
@@ -166,6 +168,14 @@ public class ExamPaperServiceImpl extends ServiceImpl<ExamPaperDao, ExamPaperEnt
                     .collect(Collectors.toList());
             examPaperDao.updateTaskByIds(taskId, paperIds);
         }
+    }
+
+    @Override
+    public boolean setTaskIdNullByIds(List<Long> ids) {
+        LambdaUpdateWrapper<ExamPaperEntity> wrapper = Wrappers.lambdaUpdate(ExamPaperEntity.class)
+                .set(ExamPaperEntity::getTaskExamId, null)
+                .in(ExamPaperEntity::getId, ids);
+        return update(wrapper);
     }
 
     /**

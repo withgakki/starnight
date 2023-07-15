@@ -47,5 +47,10 @@ public interface ExamPaperService extends IService<ExamPaperEntity> {
      */
     void updateTaskPaperRelation(Long taskId, List<ExamPaperEntity> examPaperItems);
 
+    /**
+     * 通过试卷ids 设置taskId 为null
+     */
+    boolean setTaskIdNullByIds(List<Long> ids);
+
 }
 
