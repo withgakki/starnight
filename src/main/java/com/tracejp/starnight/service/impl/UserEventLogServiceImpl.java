@@ -6,15 +6,22 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tracejp.starnight.dao.UserEventLogDao;
 import com.tracejp.starnight.entity.UserEntity;
 import com.tracejp.starnight.entity.UserEventLogEntity;
+import com.tracejp.starnight.entity.po.MonthCountPo;
 import com.tracejp.starnight.service.UserEventLogService;
+import com.tracejp.starnight.utils.DateTimeUtils;
 import com.tracejp.starnight.utils.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.stream.Collectors;
 
 /**
  * @author traceJP
@@ -23,6 +30,10 @@ import java.util.concurrent.ThreadPoolExecutor;
 @Slf4j
 @Service("userEventLogService")
 public class UserEventLogServiceImpl extends ServiceImpl<UserEventLogDao, UserEventLogEntity> implements UserEventLogService {
+
+
+    @Autowired
+    private UserEventLogDao userEventLogDao;
 
     @Autowired
     private ThreadPoolExecutor poolExecutor;
@@ -67,6 +78,23 @@ public class UserEventLogServiceImpl extends ServiceImpl<UserEventLogDao, UserEv
                 .orderByDesc(UserEventLogEntity::getCreateTime)
                 .last("limit 10");
         return list(wrapper);
+    }
+
+    @Override
+    public List<Integer> countMonth() {
+        Date startTime = DateTimeUtils.getMonthStartDay();
+        Date endTime = DateTimeUtils.getMonthEndDay();
+        List<MonthCountPo> mouthCountList = userEventLogDao.selectCountByDate(startTime, endTime);
+        Map<String, Integer> mouthCountMap = new HashMap<>();
+        if (!CollectionUtils.isEmpty(mouthCountList)) {
+            mouthCountMap = mouthCountList.stream()
+                    .collect(Collectors.toMap(MonthCountPo::getMonth, MonthCountPo::getCount));
+        }
+        // 映射到当天
+        final Map<String, Integer> mouthCountMapFinal = mouthCountMap;
+        List<String> monthStartToNow = DateTimeUtils.MothStartToNowFormat();
+        return monthStartToNow.stream().map(item -> mouthCountMapFinal.getOrDefault(item, 0))
+                .collect(Collectors.toList());
     }
 
 }

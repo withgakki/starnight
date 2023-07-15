@@ -7,6 +7,7 @@ import com.tracejp.starnight.dao.ExamPaperQuestionAnswerDao;
 import com.tracejp.starnight.entity.ExamPaperQuestionAnswerEntity;
 import com.tracejp.starnight.entity.TextContentEntity;
 import com.tracejp.starnight.entity.enums.QuestionTypeEnum;
+import com.tracejp.starnight.entity.po.MonthCountPo;
 import com.tracejp.starnight.entity.vo.ExamPaperAnswerSubmitItemVo;
 import com.tracejp.starnight.entity.vo.QuestionVo;
 import com.tracejp.starnight.entity.vo.student.QuestionAnswerErrorVo;
@@ -14,11 +15,14 @@ import com.tracejp.starnight.service.ExamPaperQuestionAnswerService;
 import com.tracejp.starnight.service.QuestionService;
 import com.tracejp.starnight.service.TextContentService;
 import com.tracejp.starnight.utils.ArrayStringUtils;
+import com.tracejp.starnight.utils.DateTimeUtils;
 import com.tracejp.starnight.utils.ScoreUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -82,6 +86,23 @@ public class ExamPaperQuestionAnswerServiceImpl extends ServiceImpl<ExamPaperQue
         LambdaQueryWrapper<ExamPaperQuestionAnswerEntity> wrapper = Wrappers.lambdaQuery(ExamPaperQuestionAnswerEntity.class)
                 .in(ExamPaperQuestionAnswerEntity::getExamPaperAnswerId, idList);
         return remove(wrapper);
+    }
+
+    @Override
+    public List<Integer> countMonth() {
+        Date startTime = DateTimeUtils.getMonthStartDay();
+        Date endTime = DateTimeUtils.getMonthEndDay();
+        List<MonthCountPo> mouthCountList = examPaperQuestionAnswerDao.selectCountByDate(startTime, endTime);
+        Map<String, Integer> mouthCountMap = new HashMap<>();
+        if (!CollectionUtils.isEmpty(mouthCountList)) {
+            mouthCountMap = mouthCountList.stream()
+                    .collect(Collectors.toMap(MonthCountPo::getMonth, MonthCountPo::getCount));
+        }
+        // 映射到当天
+        final Map<String, Integer> mouthCountMapFinal = mouthCountMap;
+        List<String> monthStartToNow = DateTimeUtils.MothStartToNowFormat();
+        return monthStartToNow.stream().map(item -> mouthCountMapFinal.getOrDefault(item, 0))
+                .collect(Collectors.toList());
     }
 
     private void setAnswerSubmitItemVoProperties(ExamPaperAnswerSubmitItemVo vo,

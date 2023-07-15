@@ -38,5 +38,10 @@ public interface UserEventLogService extends IService<UserEventLogEntity> {
      */
     List<UserEventLogEntity> listFromUser(Long userId);
 
+    /**
+     * 查询月份记录数
+     */
+    List<Integer> countMonth();
+
 }
 

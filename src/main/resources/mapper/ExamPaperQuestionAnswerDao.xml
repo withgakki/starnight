@@ -30,6 +30,11 @@
         <result property="errorCount" column="error_count"/>
     </resultMap>
 
+    <resultMap id="monthCountPoMap" type="com.tracejp.starnight.entity.po.MonthCountPo">
+        <result property="month" column="create_time"/>
+        <result property="count" column="count"/>
+    </resultMap>
+
     <select id="listQuestionAnswerErrorVo" resultMap="examPaperQuestionAnswerErrorVoMap">
         SELECT `question_id`,
                `question_type`,
@@ -41,6 +46,14 @@
         WHERE `t1`.subject_id = `t2`.id
           AND `do_right` = FALSE AND `create_by` = #{userId}
         GROUP BY `question_id`, `question_type`, `subject_id`
+    </select>
+
+    <select id="selectCountByDate" resultMap="monthCountPoMap">
+        SELECT `create_time`, COUNT(`create_time`) AS `count`
+        FROM (SELECT DATE_FORMAT(`create_time`, '%Y-%m-%d') AS `create_time`
+              FROM `t_exam_paper_question_answer`
+              WHERE `create_time` BETWEEN #{startTime} AND #{endTime}) AS t1
+        GROUP BY `create_time`
     </select>
 
 </mapper>

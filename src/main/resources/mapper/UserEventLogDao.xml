@@ -3,7 +3,7 @@
 
 <mapper namespace="com.tracejp.starnight.dao.UserEventLogDao">
 
-	<!-- 可根据自己的需求，是否要使用 -->
+    <!-- 可根据自己的需求，是否要使用 -->
     <resultMap type="com.tracejp.starnight.entity.UserEventLogEntity" id="userEventLogMap">
         <result property="id" column="id"/>
         <result property="createTime" column="create_time"/>
@@ -12,6 +12,18 @@
         <result property="realName" column="real_name"/>
         <result property="content" column="content"/>
     </resultMap>
+    
+    <resultMap id="monthCountPoMap" type="com.tracejp.starnight.entity.po.MonthCountPo">
+        <result property="month" column="create_time"/>
+        <result property="count" column="count"/>
+    </resultMap>
 
+    <select id="selectCountByDate" resultMap="monthCountPoMap">
+        SELECT `create_time`, COUNT(`create_time`) AS `count`
+        FROM (SELECT DATE_FORMAT(`create_time`, '%Y-%m-%d') AS `create_time`
+              FROM `t_user_event_log`
+              WHERE `create_time` BETWEEN #{startTime} AND #{endTime}) AS t1
+        GROUP BY `create_time`
+    </select>
 
 </mapper>

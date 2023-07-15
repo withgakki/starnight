@@ -36,5 +36,10 @@ public interface ExamPaperQuestionAnswerService extends IService<ExamPaperQuesti
      */
     boolean removeByPaperAnswerIds(List<Long> idList);
 
+    /**
+     * 查询月份记录数
+     */
+    List<Integer> countMonth();
+
 }
 
