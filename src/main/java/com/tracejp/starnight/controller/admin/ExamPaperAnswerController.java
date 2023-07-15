@@ -12,6 +12,7 @@ import com.tracejp.starnight.entity.vo.ExamPaperAnswerVo;
 import com.tracejp.starnight.entity.vo.ExamPaperVo;
 import com.tracejp.starnight.service.ExamPaperAnswerService;
 import com.tracejp.starnight.service.ExamPaperService;
+import com.tracejp.starnight.service.UserEventLogService;
 import com.tracejp.starnight.service.UserService;
 import com.tracejp.starnight.utils.ScoreUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,9 @@ public class ExamPaperAnswerController extends BaseController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserEventLogService userEventLogService;
 
     /**
      * 列表 vo
@@ -73,7 +77,11 @@ public class ExamPaperAnswerController extends BaseController {
     @PutMapping("/judge")
     public AjaxResult judge(@RequestBody ExamPaperAnswerSubmitVo submitVo) {
         Integer score = examPaperAnswerService.judge(submitVo);
-        return success(ScoreUtils.scoreToVM(score));
+        String scoreVm = ScoreUtils.scoreToVM(score);
+        // 日志记录
+        String log = "批改了试卷，答卷id：" + submitVo.getId() + "，人工判卷得分：" + scoreVm;
+        userEventLogService.saveAsync(log);
+        return success(scoreVm);
     }
 
     /**

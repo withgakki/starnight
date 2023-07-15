@@ -9,6 +9,7 @@ import com.tracejp.starnight.entity.enums.UserStatusEnum;
 import com.tracejp.starnight.entity.param.AccountLoginParam;
 import com.tracejp.starnight.entity.param.RegisterParam;
 import com.tracejp.starnight.handler.token.TokenHandler;
+import com.tracejp.starnight.service.UserEventLogService;
 import com.tracejp.starnight.service.UserService;
 import com.tracejp.starnight.utils.JwtUtils;
 import com.tracejp.starnight.utils.SecurityUtils;
@@ -43,12 +44,19 @@ public class LoginController extends BaseController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private UserEventLogService userEventLogService;
+
     @PostMapping("/login")
     public AjaxResult login(@Valid @RequestBody AccountLoginParam loginBody) {
         Authentication authenticate = authorizationManager.authenticate(
                 loginBody.getUsernamePasswordAuthenticationToken()
         );
         LoginUser details = (LoginUser) authenticate.getDetails();
+
+        // 日志记录
+        userEventLogService.saveAsync(details.getUser(), "登录了星空在线考试平台");
+
         // 生成 token
         return success(tokenHandler.createToken(details));
     }

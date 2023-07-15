@@ -217,19 +217,4 @@ CREATE TABLE `t_user_event_log`  (
                                    PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户操作事件表' ROW_FORMAT = COMPACT;
 
--- ----------------------------
--- Table structure for t_user_token
--- ----------------------------
-DROP TABLE IF EXISTS `t_user_token`;
-CREATE TABLE `t_user_token`  (
-                               `id` bigint(11) NOT NULL AUTO_INCREMENT COMMENT '自增id',
-                               `create_time` datetime NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '创建时间',
-                               `token` varchar(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '令牌',
-                               `user_id` bigint(11) NULL DEFAULT NULL COMMENT '用户id',
-                               `wx_open_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '微信openId',
-                               `end_time` datetime NULL DEFAULT NULL COMMENT '令牌过期时间',
-                               `user_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '用户名',
-                               PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户令牌表' ROW_FORMAT = COMPACT;
-
 SET FOREIGN_KEY_CHECKS = 1;

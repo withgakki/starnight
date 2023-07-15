@@ -11,6 +11,7 @@ import com.tracejp.starnight.entity.vo.ExamPaperVo;
 import com.tracejp.starnight.entity.vo.student.ExamPaperInfoVo;
 import com.tracejp.starnight.service.ExamPaperAnswerService;
 import com.tracejp.starnight.service.ExamPaperService;
+import com.tracejp.starnight.service.UserEventLogService;
 import com.tracejp.starnight.utils.ScoreUtils;
 import com.tracejp.starnight.utils.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +36,9 @@ public class ExamPaperAnswerController extends BaseController {
 
     @Autowired
     private ExamPaperService examPaperService;
+
+    @Autowired
+    private UserEventLogService userEventLogService;
 
     /**
      * 列表分页
@@ -62,6 +66,11 @@ public class ExamPaperAnswerController extends BaseController {
             }
         });
         Integer systemScore = examPaperAnswerBo.getAnswer().getSystemScore();
+
+        // 日志记录
+        String log = "提交了试卷，耗时：" + answerVo.getDoTime() + "，系统判卷得分：" + systemScore;
+        userEventLogService.saveAsync(user, log);
+
         return success(ScoreUtils.scoreToVM(systemScore));
     }
 

@@ -9,6 +9,7 @@ import com.tracejp.starnight.entity.param.UpdatePwdParam;
 import com.tracejp.starnight.entity.param.UserProfileParam;
 import com.tracejp.starnight.handler.file.IFileHandler;
 import com.tracejp.starnight.handler.token.TokenHandler;
+import com.tracejp.starnight.service.UserEventLogService;
 import com.tracejp.starnight.service.UserService;
 import com.tracejp.starnight.utils.BeanUtils;
 import com.tracejp.starnight.utils.SecurityUtils;
@@ -33,6 +34,9 @@ public class UserProfileController extends BaseController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserEventLogService userEventLogService;
 
     @Autowired
     private TokenHandler tokenHandler;
@@ -64,6 +68,10 @@ public class UserProfileController extends BaseController {
             // 更新缓存
             BeanUtils.updateProperties(userProfile, userEntity);
             tokenHandler.setLoginUser(loginUser);
+
+            // 日志记录
+            userEventLogService.saveAsync(userEntity, "修改了个人信息");
+
             return success();
         }
         return error("修改个人信息异常，请联系管理员");
@@ -96,6 +104,10 @@ public class UserProfileController extends BaseController {
             LoginUser loginUser = SecurityUtils.getLoginUser();
             loginUser.setUser(user);
             tokenHandler.setLoginUser(loginUser);
+
+            // 日志记录
+            userEventLogService.saveAsync(user, "修改了密码信息");
+
             return success();
         }
         return error("修改密码异常，请联系管理员");
