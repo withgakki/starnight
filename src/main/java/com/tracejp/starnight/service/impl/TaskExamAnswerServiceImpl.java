@@ -9,6 +9,8 @@ import com.tracejp.starnight.entity.ExamPaperEntity;
 import com.tracejp.starnight.entity.TaskExamAnswerEntity;
 import com.tracejp.starnight.entity.TextContentEntity;
 import com.tracejp.starnight.entity.po.TaskItemAnswerPo;
+import com.tracejp.starnight.exception.ServiceException;
+import com.tracejp.starnight.service.ExamPaperService;
 import com.tracejp.starnight.service.TaskExamAnswerService;
 import com.tracejp.starnight.service.TextContentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,9 @@ import java.util.Objects;
  */
 @Service("taskExamAnswerService")
 public class TaskExamAnswerServiceImpl extends ServiceImpl<TaskExamAnswerDao, TaskExamAnswerEntity> implements TaskExamAnswerService {
+
+    @Autowired
+    private ExamPaperService examPaperService;
 
     @Autowired
     private TextContentService textContentService;
@@ -85,6 +90,28 @@ public class TaskExamAnswerServiceImpl extends ServiceImpl<TaskExamAnswerDao, Ta
             textContent.setContent(taskItemAnswerPos);
             textContentService.updateById(textContent);
         }
+    }
+
+    @Override
+    public void updateStatusByExamAnswerStatus(ExamPaperAnswerEntity answer) {
+        ExamPaperEntity examPaperEntity = examPaperService.getById(answer.getExamPaperId());
+        if (examPaperEntity == null) {
+            throw new ServiceException("试卷未找到");
+        }
+        TaskExamAnswerEntity taskAnswer = listByUserIdTaskId(answer.getCreateBy(),
+                examPaperEntity.getTaskExamId());
+        TextContentEntity textContent = textContentService.getById(taskAnswer.getTextContentId());
+
+        // 找到并修改当前试卷的任务状态
+        List<TaskItemAnswerPo> taskItemAnswerPos = textContent.getContentArray(TaskItemAnswerPo.class);
+        if (!CollectionUtils.isEmpty(taskItemAnswerPos)) {
+            taskItemAnswerPos.stream()
+                    .filter(task -> Objects.equals(task.getExamPaperAnswerId(), answer.getId()))
+                    .findFirst()
+                    .ifPresent(item -> item.setStatus(answer.getStatus()));
+        }
+        textContent.setContent(taskItemAnswerPos);
+        textContentService.updateById(textContent);
     }
 
     @Override

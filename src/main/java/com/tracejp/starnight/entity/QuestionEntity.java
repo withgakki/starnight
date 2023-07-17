@@ -70,12 +70,12 @@ public class QuestionEntity {
     private Integer difficult;
 
     /**
-     * 正确答案
+     * 正确答案 - 单选、多选、判断
      */
     private String correct;
 
     /**
-     * 题目内容信息id
+     * 题目内容信息id - 填空、简答
      */
     private Long infoTextContentId;
 

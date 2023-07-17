@@ -11,16 +11,15 @@ import com.tracejp.starnight.entity.enums.ExamPaperTypeEnum;
 import com.tracejp.starnight.entity.enums.QuestionTypeEnum;
 import com.tracejp.starnight.entity.po.ExamPaperQuestionItemPo;
 import com.tracejp.starnight.entity.po.ExamPaperTitleItemPo;
-import com.tracejp.starnight.entity.po.TaskItemAnswerPo;
+import com.tracejp.starnight.entity.po.QuestionItemPo;
+import com.tracejp.starnight.entity.po.QuestionPo;
 import com.tracejp.starnight.entity.vo.ExamPaperAnswerSubmitItemVo;
 import com.tracejp.starnight.entity.vo.ExamPaperAnswerSubmitVo;
 import com.tracejp.starnight.entity.vo.ExamPaperAnswerVo;
 import com.tracejp.starnight.exception.ServiceException;
+import com.tracejp.starnight.handler.nlp.INlpHandler;
 import com.tracejp.starnight.service.*;
-import com.tracejp.starnight.utils.ArrayStringUtils;
-import com.tracejp.starnight.utils.ScoreUtils;
-import com.tracejp.starnight.utils.StringUtils;
-import com.tracejp.starnight.utils.TextUtils;
+import com.tracejp.starnight.utils.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,6 +29,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -39,6 +39,11 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service("examPaperAnswerService")
 public class ExamPaperAnswerServiceImpl extends ServiceImpl<ExamPaperAnswerDao, ExamPaperAnswerEntity> implements ExamPaperAnswerService {
+
+    /**
+     * 智能判卷 题目批改 重试次数
+     */
+    private static final Integer AUTO_JUDGE_MAX_RETRY = 3;
 
     @Autowired
     private ExamPaperService examPaperService;
@@ -57,6 +62,9 @@ public class ExamPaperAnswerServiceImpl extends ServiceImpl<ExamPaperAnswerDao, 
 
     @Autowired
     private ExamPaperAnswerDao examPaperAnswerDao;
+
+    @Autowired
+    private INlpHandler nlpHandler;
 
     @Autowired
     private ThreadPoolExecutor threadPoolExecutor;
@@ -314,24 +322,73 @@ public class ExamPaperAnswerServiceImpl extends ServiceImpl<ExamPaperAnswerDao, 
         // 任务试卷状态更新
         ExamPaperTypeEnum examPaperType = ExamPaperTypeEnum.fromCode(answer.getPaperType());
         if (examPaperType == ExamPaperTypeEnum.TASK) {
-            ExamPaperEntity examPaperEntity = examPaperService.getById(answer.getExamPaperId());
-            if (examPaperEntity == null) {
-                throw new ServiceException("试卷未找到");
-            }
-            TaskExamAnswerEntity taskAnswer = taskExamAnswerService.listByUserIdTaskId(answer.getCreateBy(),
-                    examPaperEntity.getTaskExamId());
-            TextContentEntity textContent = textContentService.getById(taskAnswer.getTextContentId());
+            taskExamAnswerService.updateStatusByExamAnswerStatus(answer);
+        }
 
-            // 找到并修改当前试卷的任务状态
-            List<TaskItemAnswerPo> taskItemAnswerPos = textContent.getContentArray(TaskItemAnswerPo.class);
-            if (!CollectionUtils.isEmpty(taskItemAnswerPos)) {
-                taskItemAnswerPos.stream()
-                        .filter(task -> Objects.equals(task.getExamPaperAnswerId(), answer.getId()))
-                        .findFirst()
-                        .ifPresent(item -> item.setStatus(answer.getStatus()));
+        return userScore;
+    }
+
+    @Transactional
+    @Override
+    public Integer autoJudge(Long id) {
+        ExamPaperAnswerEntity answer = getById(id);
+        if (answer == null) {
+            throw new ServiceException("答卷不存在");
+        }
+        ExamPaperAnswerStatusEnum answerStatus = ExamPaperAnswerStatusEnum.fromCode(answer.getStatus());
+        if (answerStatus == ExamPaperAnswerStatusEnum.Complete) {
+            throw new ServiceException("试卷已经完成，不允许再次批改");
+        }
+
+        // 取出需要批改的题目
+        List<ExamPaperQuestionAnswerEntity> questionAnswers = examPaperQuestionAnswerService.listByAnswerId(answer.getId());
+        List<ExamPaperQuestionAnswerEntity> updates = new ArrayList<>();
+        Map<Long, QuestionEntity> findOriginQuestionMap;
+        if (!CollectionUtils.isEmpty(questionAnswers)) {
+            List<Long> questionIds = questionAnswers.stream()
+                    .map(ExamPaperQuestionAnswerEntity::getQuestionId)
+                    .collect(Collectors.toList());
+            List<QuestionEntity> originQuestion = questionService.listByIds(questionIds);
+            if (!CollectionUtils.isEmpty(originQuestion)) {
+                findOriginQuestionMap = originQuestion.stream()
+                        .collect(Collectors.toMap(QuestionEntity::getId, q -> q));
+                final Map<Long, QuestionEntity> findOriginQuestionMapFinal = findOriginQuestionMap;
+                updates = questionAnswers.stream().filter(item -> {
+                    QuestionEntity questionEntity = findOriginQuestionMapFinal.get(item.getQuestionId());
+                    return questionEntity != null &&
+                            QuestionTypeEnum.needSaveTextContent(questionEntity.getQuestionType());
+                }).collect(Collectors.toList());
+
+                // 批改答案
+                if (!CollectionUtils.isEmpty(updates)) {
+                    CompletableFuture.allOf(updates.stream().map(item -> {
+                        QuestionEntity questionEntity = findOriginQuestionMapFinal.get(item.getQuestionId());
+                        return updateQuestionAnswerPropertiesByAutoJudge(item, questionEntity);
+                    }).toArray(CompletableFuture[]::new));
+                }
             }
-            textContent.setContent(taskItemAnswerPos);
-            textContentService.updateById(textContent);
+        }
+
+        Integer userScore = answer.getUserScore();
+        Integer correctNum = answer.getQuestionCorrect();
+        for (ExamPaperQuestionAnswerEntity update : updates) {
+            userScore += update.getCustomerScore();
+            if (update.getDoRight()) {
+                correctNum++;
+            }
+        }
+
+        // 答卷实体修改 & 答卷问题修改
+        answer.setUserScore(userScore);
+        answer.setQuestionCorrect(correctNum);
+        answer.setStatus(ExamPaperAnswerStatusEnum.Complete.getCode());
+        this.updateById(answer);
+        examPaperQuestionAnswerService.updateBatchById(updates);
+
+        // 任务试卷状态更新
+        ExamPaperTypeEnum examPaperType = ExamPaperTypeEnum.fromCode(answer.getPaperType());
+        if (examPaperType == ExamPaperTypeEnum.TASK) {
+            taskExamAnswerService.updateStatusByExamAnswerStatus(answer);
         }
 
         return userScore;
@@ -395,7 +452,7 @@ public class ExamPaperAnswerServiceImpl extends ServiceImpl<ExamPaperAnswerDao, 
 
     /**
      * 根据题型 设置 问题答案属性
-     * 包括（系统）预批改题目
+     * 包括（系统）预批改题目：单选、多选、判断、填空、简答
      */
     private void setQuestionAnswerProperties(ExamPaperQuestionAnswerEntity questionAnswerEntity,
                                              QuestionEntity question,
@@ -444,19 +501,26 @@ public class ExamPaperAnswerServiceImpl extends ServiceImpl<ExamPaperAnswerDao, 
                 strAnswer = ArrayStringUtils.contentToString(answer);
                 questionAnswerEntity.setAnswer(strAnswer);
                 int rightCount = 0;
-                List<String> origin = ArrayStringUtils.contentToArray(question.getCorrect());
+                int score = 0;
+                TextContentEntity textContent = textContentService.getById(question.getInfoTextContentId());
+                QuestionPo questionPo = textContent.getContent(QuestionPo.class);
+                List<QuestionItemPo> origin = questionPo.getQuestionItemPos();
                 for (int i = 0; i < origin.size(); i++) {
-                    if (StringUtils.isNotEmpty(answer.get(i)) && StringUtils.equals(origin.get(i), answer.get(i))) {
+                    QuestionItemPo originItem = origin.get(i);
+                    String answerItem = answer.get(i);
+                    if (StringUtils.isNotEmpty(answerItem) &&
+                            StringUtils.equals(HtmlUtils.clear(originItem.getContent()), answerItem)) {
                         rightCount++;
+                        score += ScoreUtils.scoreFromVM(originItem.getScore());
                     }
                 }
-                questionAnswerEntity.setCustomerScore(question.getScore() * rightCount / origin.size());
+                questionAnswerEntity.setCustomerScore(score);
                 questionAnswerEntity.setDoRight(rightCount == origin.size());
                 break;
             // 简答：得分为答案相似度 * 总分
             case ShortAnswer:
                 questionAnswerEntity.setAnswer(questionAnswer.getContent());
-                double similarity = TextUtils.computeTFIDF(questionAnswer.getContent(), question.getCorrect());
+                double similarity = TextUtils.computeTFIDF(questionAnswer.getContent(), HtmlUtils.clear(question.getCorrect()));
                 questionAnswerEntity.setCustomerScore((int) (similarity * question.getScore()));
                 questionAnswerEntity.setDoRight(similarity >= 0.8);
                 break;
@@ -466,6 +530,73 @@ public class ExamPaperAnswerServiceImpl extends ServiceImpl<ExamPaperAnswerDao, 
                 questionAnswerEntity.setDoRight(false);
                 break;
         }
+    }
+
+    /**
+     * 智能批改题目（填空、简答）
+     * - 自旋重试 AUTO_JUDGE_MAX_RETRY 次，重试失败默认批改为 0 分
+     */
+    private CompletableFuture<Void> updateQuestionAnswerPropertiesByAutoJudge(ExamPaperQuestionAnswerEntity questionAnswer,
+                                                                              QuestionEntity question) {
+        return CompletableFuture.runAsync(() -> {
+            // 自旋重试
+            AtomicInteger retry = new AtomicInteger(0);
+            while (true) {
+                try {
+                    // 查出答案
+                    TextContentEntity textContent = textContentService.getById(questionAnswer.getTextContentId());
+                    String answer = textContent.getContent(String.class);
+                    if (answer == null) {
+                        throw new ServiceException("题目不存在");
+                    }
+
+                    // 批改
+                    QuestionTypeEnum questionTypeEnum = QuestionTypeEnum.fromCode(question.getQuestionType());
+                    switch (questionTypeEnum) {
+                        case GapFilling:
+                            int rightCount = 0;
+                            int score = 0;
+                            TextContentEntity gapTextContent = textContentService.getById(question.getInfoTextContentId());
+                            QuestionPo questionPo = gapTextContent.getContent(QuestionPo.class);
+                            List<QuestionItemPo> origin = questionPo.getQuestionItemPos();
+                            List<String> answerArray = ArrayStringUtils.contentToArray(answer);
+                            for (int i = 0; i < origin.size(); i++) {
+                                QuestionItemPo originItem = origin.get(i);
+                                String answerItem = answerArray.get(i);
+                                if (StringUtils.isNotEmpty(answerItem)) {
+                                    Double similarity = nlpHandler.simnet(HtmlUtils.clear(originItem.getContent()), answerItem);
+                                    if (similarity >= 0.8) {
+                                        rightCount++;
+                                        score += ScoreUtils.scoreFromVM(originItem.getScore());
+                                    }
+                                }
+                            }
+                            questionAnswer.setCustomerScore(score);
+                            questionAnswer.setDoRight(rightCount == origin.size());
+                            return;
+                        case ShortAnswer:
+                            Double similarity = nlpHandler.simnet(answer, HtmlUtils.clear(question.getCorrect()));
+                            questionAnswer.setCustomerScore((int) (similarity * question.getScore()));
+                            questionAnswer.setDoRight(similarity >= 0.8);
+                            return;
+                        default:
+                            questionAnswer.setCustomerScore(0);
+                            questionAnswer.setDoRight(false);
+                            return;
+                    }
+
+                } catch (Exception e) {
+                    retry.incrementAndGet();
+                    if (retry.get() < AUTO_JUDGE_MAX_RETRY) {
+                        questionAnswer.setCustomerScore(0);
+                        questionAnswer.setDoRight(false);
+                        return;
+                    }
+                    log.error("智能批改题目异常: {}; 重试次数... ({}) / 最大重试次数({})",
+                            e.getMessage(), retry.get(), AUTO_JUDGE_MAX_RETRY);
+                }
+            }
+        }, threadPoolExecutor);
     }
 
 }

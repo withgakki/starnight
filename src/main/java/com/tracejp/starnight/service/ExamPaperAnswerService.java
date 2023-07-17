@@ -47,10 +47,14 @@ public interface ExamPaperAnswerService extends IService<ExamPaperAnswerEntity> 
     ExamPaperAnswerSubmitVo getAnswerSubmitVoById(Long id);
 
     /**
-     * 批改试卷
-     * @return 分数
+     * 手动批改试卷
      */
     Integer judge(ExamPaperAnswerSubmitVo submitVo);
+
+    /**
+     * 智能批改试卷
+     */
+    Integer autoJudge(Long id);
 
     /**
      * 级联删除答卷

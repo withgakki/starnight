@@ -5,13 +5,15 @@ import com.tracejp.starnight.entity.UserEntity;
 import com.tracejp.starnight.entity.base.AjaxResult;
 import com.tracejp.starnight.entity.base.TableDataInfo;
 import com.tracejp.starnight.entity.dto.UserDto;
+import com.tracejp.starnight.entity.enums.UserStatusEnum;
 import com.tracejp.starnight.entity.param.UserEditParam;
 import com.tracejp.starnight.service.UserService;
+import com.tracejp.starnight.utils.SecurityUtils;
+import com.tracejp.starnight.utils.StringUtils;
 import com.tracejp.starnight.utils.UUIDUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -58,6 +60,10 @@ public class UserController extends BaseController {
     public AjaxResult save(@RequestBody UserEditParam user) {
         UserEntity userEntity = user.convertTo();
         userEntity.setUserUuid(UUIDUtils.fastUUID().toString());
+        userEntity.setStatus(UserStatusEnum.Enable.getCode());
+        if (StringUtils.isNotEmpty(user.getPassword())) {
+            userEntity.setPassword(SecurityUtils.encryptPassword(user.getPassword()));
+        }
         userService.save(userEntity);
         return success();
     }
@@ -68,7 +74,9 @@ public class UserController extends BaseController {
     @PutMapping
     public AjaxResult update(@RequestBody UserEditParam user) {
         UserEntity userEntity = user.convertTo();
-        userEntity.setUpdateTime(new Date());
+        if (StringUtils.isNotEmpty(user.getPassword())) {
+            userEntity.setPassword(SecurityUtils.encryptPassword(user.getPassword()));
+        }
         userService.updateById(userEntity);
         return success();
     }

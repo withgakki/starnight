@@ -66,12 +66,13 @@ public class ExamPaperAnswerController extends BaseController {
             }
         });
         Integer systemScore = examPaperAnswerBo.getAnswer().getSystemScore();
+        String scoreVm = ScoreUtils.scoreToVM(systemScore);
 
         // 日志记录
-        String log = "提交了试卷，耗时：" + answerVo.getDoTime() + "，系统判卷得分：" + systemScore;
+        String log = "提交了试卷，耗时：" + answerVo.getDoTime() + "，系统判卷得分：" + scoreVm;
         userEventLogService.saveAsync(user, log);
 
-        return success(ScoreUtils.scoreToVM(systemScore));
+        return success(scoreVm);
     }
 
     /**

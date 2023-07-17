@@ -63,6 +63,15 @@ starnight:
     access-key: 123456
     secret-key: 123456
     bucket-name: starnight
+  # chat-gpt
+  chat-gpt:
+    api-url: https://api.openai.com/v1/chat/completions
+    api-key: 123456
+  # baidu-nlp
+  nlp:
+    app-id: 123456
+    api-key: 123456
+    secret-key: 123456
   # 自定义线程池
   thread:
     pool:

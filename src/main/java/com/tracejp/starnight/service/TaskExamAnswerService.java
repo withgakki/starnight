@@ -34,6 +34,11 @@ public interface TaskExamAnswerService extends IService<TaskExamAnswerEntity> {
     void saveOrUpdateByPaperAnswer(ExamPaperEntity examPaper, ExamPaperAnswerEntity examPaperAnswerEntity);
 
     /**
+     * 跟随答卷状态更新任务答卷状态
+     */
+    void updateStatusByExamAnswerStatus(ExamPaperAnswerEntity answer);
+
+    /**
      * 删除任务中试卷（变更任务试卷状态）
      */
     void removeByAnswers(List<ExamPaperAnswerEntity> paperListByTask);
