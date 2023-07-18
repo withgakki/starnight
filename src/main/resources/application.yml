@@ -67,6 +67,7 @@ starnight:
   chat-gpt:
     api-url: https://api.openai.com/v1/chat/completions
     api-key: 123456
+    model: gpt-3.5-turbo
   # baidu-nlp
   nlp:
     app-id: 123456

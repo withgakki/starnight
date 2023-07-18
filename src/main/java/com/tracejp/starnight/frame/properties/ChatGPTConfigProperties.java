@@ -23,4 +23,9 @@ public class ChatGPTConfigProperties {
      */
     private String apiKey;
 
+    /**
+     * 模型名称
+     */
+    private String model;
+
 }

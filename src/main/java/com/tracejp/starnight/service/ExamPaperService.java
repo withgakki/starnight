@@ -2,6 +2,7 @@ package com.tracejp.starnight.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tracejp.starnight.entity.ExamPaperEntity;
+import com.tracejp.starnight.entity.param.RandomExamPaperParams;
 import com.tracejp.starnight.entity.vo.ExamPaperVo;
 
 import java.util.List;
@@ -36,6 +37,11 @@ public interface ExamPaperService extends IService<ExamPaperEntity> {
      * 保存 vo
      */
     void saveExamPaperVo(ExamPaperVo examPaper, Long userId);
+
+    /**
+     * 构建随机试卷
+     */
+    void buildRandomExamPaper(RandomExamPaperParams randomParams, Long userId);
 
     /**
      * 修改 vo

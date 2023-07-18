@@ -1,6 +1,7 @@
 package com.tracejp.starnight.handler.nlp;
 
 import com.baidu.aip.nlp.AipNlp;
+import com.tracejp.starnight.exception.ThirdPartyResponseException;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +35,7 @@ public class BaiduNlpHandler implements INlpHandler {
             return result.getDouble(RESULT_SCORE_KEY);
         } catch (Exception e) {
             log.error("simnet error: {}", result);
-            throw e;
+            throw new ThirdPartyResponseException("百度自然语言处理接口响应异常");
         }
     }
 

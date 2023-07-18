@@ -42,5 +42,10 @@ public interface QuestionService extends IService<QuestionEntity> {
      */
     void updateQuestionVo(QuestionVo question);
 
+    /**
+     * 通过题目 id 使用 gpt 进行解答
+     */
+    String gptQuestionAnalyze(Long id);
+
 }
 

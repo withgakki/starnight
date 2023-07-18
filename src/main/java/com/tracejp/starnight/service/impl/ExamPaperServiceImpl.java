@@ -9,6 +9,7 @@ import com.tracejp.starnight.entity.ExamPaperEntity;
 import com.tracejp.starnight.entity.QuestionEntity;
 import com.tracejp.starnight.entity.TextContentEntity;
 import com.tracejp.starnight.entity.enums.ExamPaperTypeEnum;
+import com.tracejp.starnight.entity.param.RandomExamPaperParams;
 import com.tracejp.starnight.entity.po.ExamPaperQuestionItemPo;
 import com.tracejp.starnight.entity.po.ExamPaperTitleItemPo;
 import com.tracejp.starnight.entity.vo.ExamPaperTitleItemVo;
@@ -140,6 +141,14 @@ public class ExamPaperServiceImpl extends ServiceImpl<ExamPaperDao, ExamPaperEnt
         examPaperEntity.setCreateBy(userId);
         examPaperEntity.setFrameTextContentId(examPaperContent.getId());
         save(examPaperEntity);
+    }
+
+    @Override
+    public void buildRandomExamPaper(RandomExamPaperParams randomParams, Long userId) {
+        ExamPaperVo buildVo = new ExamPaperVo();
+
+        // TODO 构建随机试卷
+
     }
 
     @Transactional

@@ -11,11 +11,13 @@ import com.tracejp.starnight.entity.po.QuestionPo;
 import com.tracejp.starnight.entity.vo.QuestionItemVo;
 import com.tracejp.starnight.entity.vo.QuestionVo;
 import com.tracejp.starnight.exception.ServiceException;
+import com.tracejp.starnight.handler.gpt.IGPTHandler;
 import com.tracejp.starnight.service.QuestionService;
 import com.tracejp.starnight.service.SubjectService;
 import com.tracejp.starnight.service.TextContentService;
 import com.tracejp.starnight.utils.ArrayStringUtils;
 import com.tracejp.starnight.utils.BeanUtils;
+import com.tracejp.starnight.utils.HtmlUtils;
 import com.tracejp.starnight.utils.ScoreUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,6 +44,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionDao, QuestionEntity
     @Autowired
     private QuestionDao questionDao;
 
+    @Autowired
+    private IGPTHandler gptHandler;
 
     @Override
     public List<QuestionEntity> listPage(QuestionEntity question) {
@@ -166,6 +170,65 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionDao, QuestionEntity
         textContentEntity.setId(questionLast.getInfoTextContentId());
         textContentService.updateById(textContentEntity);
     }
+
+    @Override
+    public String gptQuestionAnalyze(Long id) {
+        QuestionEntity question = getById(id);
+        if (question == null) {
+            throw new ServiceException("题目不存在");
+        }
+        TextContentEntity textContent = textContentService.getById(question.getInfoTextContentId());
+        QuestionPo questionPo = textContent.getContent(QuestionPo.class);
+        String prompts = buildGptPromptByQuestionAnalyze(question, questionPo);
+
+        // TODO token 太少
+
+        return gptHandler.chat(prompts);
+    }
+
+    /**
+     * 构建 题目解析 prompt 提问字符串
+     */
+    private String buildGptPromptByQuestionAnalyze(QuestionEntity question, QuestionPo questionPo) {
+        List<QuestionItemPo> questionItemPos = questionPo.getQuestionItemPos();
+        QuestionTypeEnum questionTypeEnum = QuestionTypeEnum.fromCode(question.getQuestionType());
+        StringBuilder questionItemsStr = new StringBuilder();
+        StringBuilder answerStr = new StringBuilder();
+        String title = questionPo.getTitleContent();
+        String typeName = questionTypeEnum.getName();
+        switch (questionTypeEnum) {
+            case SingleChoice:
+            case MultipleChoice:
+            case TrueFalse:
+                for (QuestionItemPo po : questionItemPos) {
+                    questionItemsStr.append(po.getPrefix()).append("、")
+                            .append(HtmlUtils.clear(po.getContent())).append(";");
+                }
+                answerStr.append(question.getCorrect());
+                title = HtmlUtils.clear(title);
+                break;
+            case GapFilling:
+                questionItemsStr.append("填空题选项包含在题目中，使用span标签且有gapfilling-span样式的标签包围");
+                for (QuestionItemPo po : questionItemPos) {
+                    answerStr.append(po.getPrefix()).append("、")
+                            .append(HtmlUtils.clear(po.getContent())).append(";");
+                }
+                break;
+            case ShortAnswer:
+                answerStr.append(HtmlUtils.clear(question.getCorrect()));
+                break;
+            default:
+                throw new ServiceException("未知的题型");
+        }
+
+        return "请解析该题的解答，并分点简要给出的解析过程，不超过5点，每点不多余100字：\n" +
+                "题目：" + title + "\n" +
+                "题型：" + typeName + "\n" +
+                "选项：" + questionItemsStr + "\n" +
+                "参考答案：" + answerStr + "\n";
+    }
+
+
 
     /**
      * 转换 QuestionVo 为 TextContent

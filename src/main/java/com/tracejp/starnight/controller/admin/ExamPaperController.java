@@ -4,6 +4,7 @@ import com.tracejp.starnight.controller.BaseController;
 import com.tracejp.starnight.entity.ExamPaperEntity;
 import com.tracejp.starnight.entity.base.AjaxResult;
 import com.tracejp.starnight.entity.base.TableDataInfo;
+import com.tracejp.starnight.entity.param.RandomExamPaperParams;
 import com.tracejp.starnight.entity.vo.ExamPaperVo;
 import com.tracejp.starnight.service.ExamPaperService;
 import com.tracejp.starnight.utils.SecurityUtils;
@@ -59,6 +60,15 @@ public class ExamPaperController extends BaseController {
     @PostMapping
     public AjaxResult saveExamPaperVo(@RequestBody ExamPaperVo examPaper) {
         examPaperService.saveExamPaperVo(examPaper, SecurityUtils.getUserId());
+        return success();
+    }
+
+    /**
+     * 保存随机试卷
+     */
+    @PostMapping("/build")
+    public AjaxResult buildRandomExamPaper(@RequestBody RandomExamPaperParams params) {
+        examPaperService.buildRandomExamPaper(params, SecurityUtils.getUserId());
         return success();
     }
 
