@@ -2,14 +2,18 @@ package com.tracejp.starnight.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-
+import com.tracejp.starnight.constants.CacheConstants;
 import com.tracejp.starnight.dao.SubjectDao;
 import com.tracejp.starnight.entity.SubjectEntity;
 import com.tracejp.starnight.service.SubjectService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
 
+import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -21,7 +25,6 @@ public class SubjectServiceImpl extends ServiceImpl<SubjectDao, SubjectEntity> i
 
     @Autowired
     private SubjectDao subjectDao;
-
 
     @Override
     public List<SubjectEntity> listPage(SubjectEntity subject) {
@@ -37,12 +40,31 @@ public class SubjectServiceImpl extends ServiceImpl<SubjectDao, SubjectEntity> i
     }
 
     @Override
+    @Cacheable(value = CacheConstants.SUBJECT_LIST_CACHE_KEY, key = "'level:' + #level")
     public List<SubjectEntity> listByLevel(Integer level) {
         LambdaQueryWrapper<SubjectEntity> wrapper = Wrappers.lambdaQuery(SubjectEntity.class);
         if (level != null) {
             wrapper.eq(SubjectEntity::getLevel, level);
         }
         return list(wrapper);
+    }
+
+    @Override
+    @CacheEvict(value = CacheConstants.SUBJECT_LIST_CACHE_KEY, allEntries = true)
+    public boolean save(SubjectEntity entity) {
+        return super.save(entity);
+    }
+
+    @Override
+    @CacheEvict(value = CacheConstants.SUBJECT_LIST_CACHE_KEY, allEntries = true)
+    public boolean updateById(SubjectEntity entity) {
+        return super.updateById(entity);
+    }
+
+    @Override
+    @CacheEvict(value = CacheConstants.SUBJECT_LIST_CACHE_KEY, allEntries = true)
+    public boolean removeByIds(Collection<? extends Serializable> idList) {
+        return super.removeByIds(idList);
     }
 
 }

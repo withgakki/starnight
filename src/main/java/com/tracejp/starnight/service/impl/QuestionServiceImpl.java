@@ -1,6 +1,7 @@
 package com.tracejp.starnight.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tracejp.starnight.constants.CacheConstants;
 import com.tracejp.starnight.dao.QuestionDao;
 import com.tracejp.starnight.entity.QuestionEntity;
 import com.tracejp.starnight.entity.TextContentEntity;
@@ -20,6 +21,7 @@ import com.tracejp.starnight.utils.BeanUtils;
 import com.tracejp.starnight.utils.HtmlUtils;
 import com.tracejp.starnight.utils.ScoreUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -172,6 +174,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionDao, QuestionEntity
     }
 
     @Override
+    @Cacheable(CacheConstants.QUESTION_ANALYZE_CACHE_KEY)
     public String gptQuestionAnalyze(Long id) {
         QuestionEntity question = getById(id);
         if (question == null) {
@@ -180,10 +183,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionDao, QuestionEntity
         TextContentEntity textContent = textContentService.getById(question.getInfoTextContentId());
         QuestionPo questionPo = textContent.getContent(QuestionPo.class);
         String prompts = buildGptPromptByQuestionAnalyze(question, questionPo);
-
-        // TODO token 太少
-
-        return gptHandler.chat(prompts);
+        String result = gptHandler.chat(prompts);
+        return result.replaceAll("\n", "<br>");
     }
 
     /**
@@ -221,14 +222,12 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionDao, QuestionEntity
                 throw new ServiceException("未知的题型");
         }
 
-        return "请解析该题的解答，并分点简要给出的解析过程，不超过5点，每点不多余100字：\n" +
+        return "请解析该题的解答，并分点简要给出的解析过程，不超过5点，每点不超过100字：\n" +
                 "题目：" + title + "\n" +
                 "题型：" + typeName + "\n" +
                 "选项：" + questionItemsStr + "\n" +
                 "参考答案：" + answerStr + "\n";
     }
-
-
 
     /**
      * 转换 QuestionVo 为 TextContent
