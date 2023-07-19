@@ -7,8 +7,10 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tracejp.starnight.dao.ExamPaperDao;
 import com.tracejp.starnight.entity.ExamPaperEntity;
 import com.tracejp.starnight.entity.QuestionEntity;
+import com.tracejp.starnight.entity.SubjectEntity;
 import com.tracejp.starnight.entity.TextContentEntity;
 import com.tracejp.starnight.entity.enums.ExamPaperTypeEnum;
+import com.tracejp.starnight.entity.enums.QuestionTypeEnum;
 import com.tracejp.starnight.entity.param.RandomExamPaperParams;
 import com.tracejp.starnight.entity.po.ExamPaperQuestionItemPo;
 import com.tracejp.starnight.entity.po.ExamPaperTitleItemPo;
@@ -28,9 +30,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -53,6 +58,8 @@ public class ExamPaperServiceImpl extends ServiceImpl<ExamPaperDao, ExamPaperEnt
     @Autowired
     private ExamPaperDao examPaperDao;
 
+    @Autowired
+    private ThreadPoolExecutor threadPoolExecutor;
 
     @Override
     public List<ExamPaperEntity> listPage(ExamPaperEntity examPaper) {
@@ -144,11 +151,56 @@ public class ExamPaperServiceImpl extends ServiceImpl<ExamPaperDao, ExamPaperEnt
     }
 
     @Override
-    public void buildRandomExamPaper(RandomExamPaperParams randomParams, Long userId) {
+    public ExamPaperVo buildRandomExamPaperVo(RandomExamPaperParams randomParams) {
         ExamPaperVo buildVo = new ExamPaperVo();
 
-        // TODO 构建随机试卷
+        SubjectEntity subject = subjectService.getById(randomParams.getSubjectId());
 
+        // 构造试卷结构
+        List<ExamPaperTitleItemVo> titleItemVos = new ArrayList<>(3);
+        AtomicInteger score = new AtomicInteger(0);
+        AtomicInteger questionCount = new AtomicInteger(0);
+
+        // 构建单选
+        CompletableFuture<Void> singleChoiceFuture = CompletableFuture.runAsync(() -> {
+            List<QuestionVo> vos = questionService.randomExtractQuestionVos(QuestionTypeEnum.SingleChoice.getCode(),
+                    randomParams.getSingleChoice(), subject.getId(), randomParams.getDifficult()
+            );
+            ExamPaperTitleItemVo titleItemVo = buildRandomTitleItemVo(QuestionTypeEnum.SingleChoice, vos, score, questionCount);
+            titleItemVos.add(titleItemVo);
+        }, threadPoolExecutor);
+
+        // 构建多选
+        CompletableFuture<Void> multipleChoiceFuture = CompletableFuture.runAsync(() -> {
+            List<QuestionVo> vos = questionService.randomExtractQuestionVos(QuestionTypeEnum.MultipleChoice.getCode(),
+                    randomParams.getMultipleChoice(), subject.getId(), randomParams.getDifficult()
+            );
+            ExamPaperTitleItemVo titleItemVo = buildRandomTitleItemVo(QuestionTypeEnum.MultipleChoice, vos, score, questionCount);
+            titleItemVos.add(titleItemVo);
+        }, threadPoolExecutor);
+
+        // 构建判断
+        CompletableFuture<Void> trueFalseFuture = CompletableFuture.runAsync(() -> {
+            List<QuestionVo> vos = questionService.randomExtractQuestionVos(QuestionTypeEnum.TrueFalse.getCode(),
+                    randomParams.getJudgeChoice(), subject.getId(), randomParams.getDifficult()
+            );
+            ExamPaperTitleItemVo titleItemVo = buildRandomTitleItemVo(QuestionTypeEnum.TrueFalse, vos, score, questionCount);
+            titleItemVos.add(titleItemVo);
+        }, threadPoolExecutor);
+
+        CompletableFuture.allOf(singleChoiceFuture, multipleChoiceFuture, trueFalseFuture).join();
+
+        // 设置试卷基本信息
+        buildVo.setScore(ScoreUtils.scoreToVM(score.get()));
+        buildVo.setQuestionCount(questionCount.get());
+        buildVo.setTitleItems(titleItemVos);
+        buildVo.setName(randomParams.getPaperName());
+        buildVo.setSubjectId(subject.getId());
+        buildVo.setGradeLevel(subject.getLevel());
+        buildVo.setPaperType(ExamPaperTypeEnum.FIXED.getCode());
+        buildVo.setSuggestTime(randomParams.getSuggestTime());
+
+        return buildVo;
     }
 
     @Transactional
@@ -185,6 +237,24 @@ public class ExamPaperServiceImpl extends ServiceImpl<ExamPaperDao, ExamPaperEnt
                 .set(ExamPaperEntity::getTaskExamId, null)
                 .in(ExamPaperEntity::getId, ids);
         return update(wrapper);
+    }
+
+    /**
+     * 构建随机试卷 TitleItemVo & 统计分数、题目数量
+     */
+    private ExamPaperTitleItemVo buildRandomTitleItemVo(QuestionTypeEnum typeEnum,
+                                                              List<QuestionVo> vos,
+                                                              AtomicInteger score,
+                                                              AtomicInteger questionCount) {
+        ExamPaperTitleItemVo titleItemVo = new ExamPaperTitleItemVo();
+        titleItemVo.setName(typeEnum.getName());
+        titleItemVo.setQuestionItems(vos);
+        if (!CollectionUtils.isEmpty(vos)) {
+            int sum = vos.stream().mapToInt(item -> ScoreUtils.scoreFromVM(item.getScore())).sum();
+            score.addAndGet(sum);
+            questionCount.addAndGet(vos.size());
+        }
+        return titleItemVo;
     }
 
     /**

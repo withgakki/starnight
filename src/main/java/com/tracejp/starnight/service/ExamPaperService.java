@@ -41,7 +41,7 @@ public interface ExamPaperService extends IService<ExamPaperEntity> {
     /**
      * 构建随机试卷
      */
-    void buildRandomExamPaper(RandomExamPaperParams randomParams, Long userId);
+    ExamPaperVo buildRandomExamPaperVo(RandomExamPaperParams randomParams);
 
     /**
      * 修改 vo

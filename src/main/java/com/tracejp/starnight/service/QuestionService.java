@@ -33,6 +33,11 @@ public interface QuestionService extends IService<QuestionEntity> {
     List<QuestionVo> getQuestionVo(List<Long> ids);
 
     /**
+     * 随机抽取题目 vo
+     */
+    List<QuestionVo> randomExtractQuestionVos(Integer type, Integer number, Long subjectId, Integer difficult);
+
+    /**
      * 保存VO
      */
     void saveQuestionVo(QuestionVo question, Long userId);

@@ -38,4 +38,13 @@
         </where>
     </select>
 
+    <select id="randomExtractQuestion" resultMap="questionMap">
+        SELECT * FROM `t_question`
+        WHERE `question_type` = #{type}
+          AND `subject_id` = #{subjectId}
+          AND `difficult` BETWEEN #{difficult} - 1 AND #{difficult} + 1
+        ORDER BY RAND()
+        LIMIT #{number}
+    </select>
+
 </mapper>

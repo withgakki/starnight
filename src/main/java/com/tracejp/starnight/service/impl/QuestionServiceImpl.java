@@ -129,6 +129,15 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionDao, QuestionEntity
         return questionEntities.stream().map(this::getQuestionVo).collect(Collectors.toList());
     }
 
+    @Override
+    public List<QuestionVo> randomExtractQuestionVos(Integer type, Integer number, Long subjectId, Integer difficult) {
+        List<QuestionEntity> entities = questionDao.randomExtractQuestion(type, number, subjectId, difficult);
+        if (CollectionUtils.isEmpty(entities)) {
+            return new ArrayList<>();
+        }
+        return entities.stream().map(this::getQuestionVo).collect(Collectors.toList());
+    }
+
     @Transactional
     @Override
     public void saveQuestionVo(QuestionVo question, Long userId) {

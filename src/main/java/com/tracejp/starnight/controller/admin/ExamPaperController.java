@@ -66,10 +66,11 @@ public class ExamPaperController extends BaseController {
     /**
      * 保存随机试卷
      */
-    @PostMapping("/build")
+    @PostMapping("/random")
     public AjaxResult buildRandomExamPaper(@RequestBody RandomExamPaperParams params) {
-        examPaperService.buildRandomExamPaper(params, SecurityUtils.getUserId());
-        return success();
+        ExamPaperVo examPaper = examPaperService.buildRandomExamPaperVo(params);
+        examPaperService.saveExamPaperVo(examPaper, SecurityUtils.getUserId());
+        return success(examPaper);
     }
 
     /**

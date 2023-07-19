@@ -41,4 +41,9 @@ public class RandomExamPaperParams {
      */
     private Integer difficult;
 
+    /**
+     * 建议时长 分钟
+     */
+    private Integer suggestTime;
+
 }

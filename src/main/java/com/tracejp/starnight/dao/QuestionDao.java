@@ -3,6 +3,7 @@ package com.tracejp.starnight.dao;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.tracejp.starnight.entity.QuestionEntity;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -14,5 +15,10 @@ import java.util.List;
 public interface QuestionDao extends BaseMapper<QuestionEntity> {
 
     List<QuestionEntity> listPage(QuestionEntity question);
+
+    List<QuestionEntity> randomExtractQuestion(@Param("type") Integer type,
+                                               @Param("number") Integer number,
+                                               @Param("subjectId") Long subjectId,
+                                               @Param("difficult") Integer difficult);
 
 }
