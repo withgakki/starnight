@@ -16,5 +16,22 @@
         <result property="readCount" column="read_count"/>
     </resultMap>
 
+    <select id="listPage" resultMap="messageMap">
+        SELECT * FROM `t_message`
+        <where>
+            <if test="sendUserName != null and sendUserName != ''">
+                AND `send_user_name` LIKE concat('%', #{sendUserName}, '%')
+            </if>
+            <if test="sendRealName != null and sendRealName != ''">
+                AND `send_real_name` LIKE concat('%', #{sendRealName}, '%')
+            </if>
+        </where>
+    </select>
+
+    <update id="readIncrById">
+        UPDATE `t_message`
+        SET `read_count` = `read_count` + 1
+        WHERE id = #{id}
+    </update>
 
 </mapper>
