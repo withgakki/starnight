@@ -55,6 +55,14 @@ mybatis-plus:
       logic-delete-value: 1
       logic-not-delete-value: 0
 
+# elastic search 配置
+elasticsearch:
+  address: localhost
+  port: 9200
+  scheme: http
+  username: elasticsearch
+  password: 123456
+
 # star-night 配置
 starnight:
   # 文件处理器
@@ -83,6 +91,6 @@ starnight:
   # security
   security:
     ignores:
-      - /api/user/login/**
-      - /api/user/logout/**
-      - /api/user/register/**
+      - /user/login/**
+      - /user/logout/**
+      - /user/register/**

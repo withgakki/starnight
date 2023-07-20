@@ -17,11 +17,19 @@ public interface UserService extends IService<UserEntity> {
     List<UserEntity> listPage(UserEntity user);
 
     /**
-     * @param username 账号（用户名）
+     * 通过用户名获取用户
      */
     UserEntity getByUserName(String username);
 
+    /**
+     * 修改用户状态
+     */
     void changeStatus(Long id);
+
+    /**
+     * 保存用户 - 级联保存
+     */
+    void saveToAll(UserEntity user);
 
 }
 

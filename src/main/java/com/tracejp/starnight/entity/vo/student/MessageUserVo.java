@@ -16,7 +16,7 @@ public class MessageUserVo {
     /**
      * 自增 id
      */
-    private Integer id;
+    private Long id;
 
     /**
      * 创建时间
@@ -26,7 +26,7 @@ public class MessageUserVo {
     /**
      * 消息内容 id
      */
-    private Integer messageId;
+    private Long messageId;
 
     /**
      * 是否已读

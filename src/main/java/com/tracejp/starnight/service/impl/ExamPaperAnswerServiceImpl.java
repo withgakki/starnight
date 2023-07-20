@@ -121,10 +121,10 @@ public class ExamPaperAnswerServiceImpl extends ServiceImpl<ExamPaperAnswerDao, 
                     .collect(Collectors.toMap(ExamPaperAnswerSubmitItemVo::getQuestionId, answer -> answer));
         }
 
-        // 构造问题结构
+        // 构造问题结构 - 开线程构造
         final Map<Long, QuestionEntity> findQuestionMapFinal = findQuestionMap;
         final Map<Long, ExamPaperAnswerSubmitItemVo> findQuestionAnswerMapFinal = findQuestionAnswerMap;
-        List<ExamPaperQuestionAnswerEntity> questionAnswerEntities = examPaperTitleItemPos.stream()
+        List<CompletableFuture<ExamPaperQuestionAnswerEntity>> questionAnswerTasks = examPaperTitleItemPos.stream()
                 .flatMap(title -> title.getQuestionItems().stream().map(questionItem -> {
                     QuestionEntity question = null;
                     ExamPaperAnswerSubmitItemVo questionAnswer = null;
@@ -138,6 +138,12 @@ public class ExamPaperAnswerServiceImpl extends ServiceImpl<ExamPaperAnswerDao, 
                     return buildAnswerQuestionEntityFormVo(question, questionAnswer, examPaperEntity, user,
                             questionItem.getItemOrder());
                 })).collect(Collectors.toList());
+
+        // 统一获取线程结果
+        List<ExamPaperQuestionAnswerEntity> questionAnswerEntities = questionAnswerTasks.stream()
+                .map(CompletableFuture::join)
+                .collect(Collectors.toList());
+
         examPaperAnswerBo.setQuestionAnswers(questionAnswerEntities);
 
         // 构造试卷答案实体
@@ -419,35 +425,37 @@ public class ExamPaperAnswerServiceImpl extends ServiceImpl<ExamPaperAnswerDao, 
     /**
      * 通过 原始问题、答案、用户 构造问题答案实体
      */
-    private ExamPaperQuestionAnswerEntity buildAnswerQuestionEntityFormVo(QuestionEntity question,
+    private CompletableFuture<ExamPaperQuestionAnswerEntity> buildAnswerQuestionEntityFormVo(QuestionEntity question,
                                                                           ExamPaperAnswerSubmitItemVo questionAnswer,
                                                                           ExamPaperEntity examPaperEntity,
                                                                           UserEntity user,
                                                                           Integer itemOrder) {
-        ExamPaperQuestionAnswerEntity questionAnswerEntity = new ExamPaperQuestionAnswerEntity();
-        if (question == null) {
-            throw new ServiceException("题目不存在");
-        }
+        return CompletableFuture.supplyAsync(() -> {
+            ExamPaperQuestionAnswerEntity questionAnswerEntity = new ExamPaperQuestionAnswerEntity();
+            if (question == null) {
+                throw new ServiceException("题目不存在");
+            }
 
-        // 基本信息设置
-        questionAnswerEntity.setQuestionId(question.getId());
-        questionAnswerEntity.setExamPaperId(examPaperEntity.getId());
-        questionAnswerEntity.setQuestionScore(question.getScore());
-        questionAnswerEntity.setSubjectId(examPaperEntity.getSubjectId());
-        questionAnswerEntity.setItemOrder(itemOrder);
-        questionAnswerEntity.setCreateBy(user.getId());
-        questionAnswerEntity.setQuestionType(question.getQuestionType());
-        questionAnswerEntity.setQuestionTextContentId(question.getInfoTextContentId());
+            // 基本信息设置
+            questionAnswerEntity.setQuestionId(question.getId());
+            questionAnswerEntity.setExamPaperId(examPaperEntity.getId());
+            questionAnswerEntity.setQuestionScore(question.getScore());
+            questionAnswerEntity.setSubjectId(examPaperEntity.getSubjectId());
+            questionAnswerEntity.setItemOrder(itemOrder);
+            questionAnswerEntity.setCreateBy(user.getId());
+            questionAnswerEntity.setQuestionType(question.getQuestionType());
+            questionAnswerEntity.setQuestionTextContentId(question.getInfoTextContentId());
 
-        // 计算分数
-        if (questionAnswer == null) {
-            questionAnswerEntity.setCustomerScore(0);
-        } else {
-            // 预批改
-            setQuestionAnswerProperties(questionAnswerEntity, question, questionAnswer);
-        }
+            // 计算分数
+            if (questionAnswer == null) {
+                questionAnswerEntity.setCustomerScore(0);
+            } else {
+                // 预批改
+                setQuestionAnswerProperties(questionAnswerEntity, question, questionAnswer);
+            }
 
-        return questionAnswerEntity;
+            return questionAnswerEntity;
+        }, threadPoolExecutor);
     }
 
     /**

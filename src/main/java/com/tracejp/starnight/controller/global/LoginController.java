@@ -83,7 +83,7 @@ public class LoginController extends BaseController {
         user.setUserUuid(UUIDUtils.randomUUID().toString());
         user.setStatus(UserStatusEnum.Enable.getCode());
         user.setRole(RoleEnum.STUDENT.getCode());
-        userService.save(user);
+        userService.saveToAll(user);
         return success();
     }
 

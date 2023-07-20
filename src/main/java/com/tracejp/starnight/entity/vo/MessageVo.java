@@ -16,7 +16,7 @@ public class MessageVo {
     /**
      * 消息id
      */
-    private Integer id;
+    private Long id;
 
     /**
      * 创建时间
