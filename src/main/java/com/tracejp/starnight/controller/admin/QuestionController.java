@@ -4,11 +4,12 @@ import com.tracejp.starnight.controller.BaseController;
 import com.tracejp.starnight.entity.QuestionEntity;
 import com.tracejp.starnight.entity.base.AjaxResult;
 import com.tracejp.starnight.entity.base.TableDataInfo;
-import com.tracejp.starnight.entity.dto.QuestionDto;
+import com.tracejp.starnight.entity.vo.QuestionInfoVo;
 import com.tracejp.starnight.entity.po.QuestionPo;
 import com.tracejp.starnight.entity.vo.QuestionVo;
 import com.tracejp.starnight.service.QuestionService;
 import com.tracejp.starnight.service.TextContentService;
+import com.tracejp.starnight.utils.BeanUtils;
 import com.tracejp.starnight.utils.HtmlUtils;
 import com.tracejp.starnight.utils.ScoreUtils;
 import com.tracejp.starnight.utils.SecurityUtils;
@@ -42,13 +43,14 @@ public class QuestionController extends BaseController {
         startPage();
         List<QuestionEntity> list = questionService.listPage(question);
         // 封装 dto
-        List<QuestionDto> dtoList = list.stream().map(item -> {
-            QuestionDto questionDto = new QuestionDto().convertFrom(item);
-            questionDto.setScore(ScoreUtils.scoreToVM(item.getScore()));
+        List<QuestionInfoVo> dtoList = list.stream().map(item -> {
+            QuestionInfoVo questionInfoVo = new QuestionInfoVo();
+            BeanUtils.copyProperties(item, questionInfoVo);
+            questionInfoVo.setScore(ScoreUtils.scoreToVM(item.getScore()));
             QuestionPo content = textContentService.getById(item.getInfoTextContentId()).getContent(QuestionPo.class);
-            questionDto.setShortTitle(HtmlUtils.clear(content.getTitleContent()));
-            questionDto.setAnalyze(content.getAnalyze());
-            return questionDto;
+            questionInfoVo.setShortTitle(HtmlUtils.clear(content.getTitleContent()));
+            questionInfoVo.setAnalyze(content.getAnalyze());
+            return questionInfoVo;
         }).collect(Collectors.toList());
         TableDataInfo dataTable = getDataTable(list);
         dataTable.setRows(dtoList);

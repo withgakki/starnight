@@ -15,6 +15,8 @@ import java.util.Date;
 @Data
 public class UserDto implements IOutputConverter<UserDto, UserEntity> {
 
+    private static final long serialVersionUID = 1L;
+
     /**
      * 自增id
      */

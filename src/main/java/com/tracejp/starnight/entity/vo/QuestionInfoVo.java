@@ -1,19 +1,17 @@
-package com.tracejp.starnight.entity.dto;
+package com.tracejp.starnight.entity.vo;
 
-import com.tracejp.starnight.entity.QuestionEntity;
-import com.tracejp.starnight.entity.base.IOutputConverter;
 import lombok.Data;
 
 import java.util.Date;
 
 /**
- * <p>  <p/>
+ * <p> 问题基本信息 vo <p/>
  *
  * @author traceJP
  * @since 2023/6/8 17:41
  */
 @Data
-public class QuestionDto implements IOutputConverter<QuestionDto, QuestionEntity> {
+public class QuestionInfoVo {
 
     /**
      * 自增id

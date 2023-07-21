@@ -2,6 +2,8 @@ package com.tracejp.starnight.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tracejp.starnight.entity.UserEntity;
+import com.tracejp.starnight.entity.dto.UserDto;
+import com.tracejp.starnight.entity.dto.UserSearchEsDto;
 
 import java.util.List;
 
@@ -22,6 +24,11 @@ public interface UserService extends IService<UserEntity> {
     UserEntity getByUserName(String username);
 
     /**
+     * 按关键字 搜索 用户 dto
+     */
+    List<UserSearchEsDto> searchDtoByKeyword(String keyword);
+
+    /**
      * 修改用户状态
      */
     void changeStatus(Long id);
@@ -29,7 +36,17 @@ public interface UserService extends IService<UserEntity> {
     /**
      * 保存用户 - 级联保存
      */
-    void saveToAll(UserEntity user);
+    boolean saveToAll(UserEntity user);
+
+    /**
+     * 更新用户 - 级联更新
+     */
+    boolean updateToAll(UserEntity user);
+
+    /**
+     * 删除用户 - 级联删除
+     */
+    boolean removeToAllByIds(List<Long> ids);
 
 }
 

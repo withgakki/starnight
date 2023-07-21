@@ -18,8 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Date;
-
 import static com.tracejp.starnight.constants.Constants.AVATAR_FILE_SIZE;
 
 /**
@@ -63,8 +61,7 @@ public class UserProfileController extends BaseController {
         // 更新数据库
         UserEntity userProfile = user.convertTo();
         userProfile.setId(userEntity.getId());
-        userProfile.setUpdateTime(new Date());
-        if (userService.updateById(userProfile)) {
+        if (userService.updateToAll(userProfile)) {
             // 更新缓存
             BeanUtils.updateProperties(userProfile, userEntity);
             tokenHandler.setLoginUser(loginUser);
@@ -97,7 +94,6 @@ public class UserProfileController extends BaseController {
 
         // 更新数据库
         String encodePassword = SecurityUtils.encryptPassword(newPassword);
-        user.setUpdateTime(new Date());
         user.setPassword(encodePassword);
         if (userService.updateById(user)) {
             // 更新缓存
@@ -132,7 +128,6 @@ public class UserProfileController extends BaseController {
             }
             // 更新数据库
             UserEntity userEntity = loginUser.getUser();
-            userEntity.setUpdateTime(new Date());
             userEntity.setAvatarPath(fileUrl);
             if (userService.updateById(userEntity)) {
                 // 更新缓存

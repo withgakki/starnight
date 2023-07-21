@@ -5,6 +5,7 @@ import com.tracejp.starnight.entity.UserEntity;
 import com.tracejp.starnight.entity.base.AjaxResult;
 import com.tracejp.starnight.entity.base.TableDataInfo;
 import com.tracejp.starnight.entity.dto.UserDto;
+import com.tracejp.starnight.entity.dto.UserSearchEsDto;
 import com.tracejp.starnight.entity.enums.UserStatusEnum;
 import com.tracejp.starnight.entity.param.UserEditParam;
 import com.tracejp.starnight.service.UserService;
@@ -54,6 +55,15 @@ public class UserController extends BaseController {
     }
 
     /**
+     * 搜索用户
+     */
+    @GetMapping("/search")
+    public AjaxResult search(String keyword) {
+        List<UserSearchEsDto> list = userService.searchDtoByKeyword(keyword);
+        return success(list);
+    }
+
+    /**
      * 保存
      */
     @PostMapping
@@ -64,7 +74,7 @@ public class UserController extends BaseController {
         if (StringUtils.isNotEmpty(user.getPassword())) {
             userEntity.setPassword(SecurityUtils.encryptPassword(user.getPassword()));
         }
-        userService.save(userEntity);
+        userService.saveToAll(userEntity);
         return success();
     }
 
@@ -77,7 +87,7 @@ public class UserController extends BaseController {
         if (StringUtils.isNotEmpty(user.getPassword())) {
             userEntity.setPassword(SecurityUtils.encryptPassword(user.getPassword()));
         }
-        userService.updateById(userEntity);
+        userService.updateToAll(userEntity);
         return success();
     }
 
@@ -86,7 +96,7 @@ public class UserController extends BaseController {
      */
     @DeleteMapping("/{ids}")
     public AjaxResult delete(@PathVariable List<Long> ids) {
-        userService.removeByIds(ids);
+        userService.removeToAllByIds(ids);
         return success();
     }
 
