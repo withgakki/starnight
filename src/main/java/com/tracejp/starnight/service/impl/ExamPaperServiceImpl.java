@@ -1,39 +1,48 @@
 package com.tracejp.starnight.service.impl;
 
+import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tracejp.starnight.constants.ElasticSearchConstants;
 import com.tracejp.starnight.dao.ExamPaperDao;
 import com.tracejp.starnight.entity.ExamPaperEntity;
 import com.tracejp.starnight.entity.QuestionEntity;
 import com.tracejp.starnight.entity.SubjectEntity;
 import com.tracejp.starnight.entity.TextContentEntity;
+import com.tracejp.starnight.entity.dto.SearchExamPaperDto;
 import com.tracejp.starnight.entity.enums.ExamPaperTypeEnum;
 import com.tracejp.starnight.entity.enums.QuestionTypeEnum;
 import com.tracejp.starnight.entity.param.RandomExamPaperParams;
+import com.tracejp.starnight.entity.param.SearchPageParam;
 import com.tracejp.starnight.entity.po.ExamPaperQuestionItemPo;
 import com.tracejp.starnight.entity.po.ExamPaperTitleItemPo;
 import com.tracejp.starnight.entity.vo.ExamPaperTitleItemVo;
 import com.tracejp.starnight.entity.vo.ExamPaperVo;
 import com.tracejp.starnight.entity.vo.QuestionVo;
+import com.tracejp.starnight.entity.vo.student.ExamPaperSearchVo;
 import com.tracejp.starnight.exception.ServiceException;
 import com.tracejp.starnight.service.ExamPaperService;
 import com.tracejp.starnight.service.QuestionService;
 import com.tracejp.starnight.service.SubjectService;
 import com.tracejp.starnight.service.TextContentService;
 import com.tracejp.starnight.utils.BeanUtils;
+import com.tracejp.starnight.utils.ElasticSearchUtils;
 import com.tracejp.starnight.utils.ScoreUtils;
 import com.tracejp.starnight.utils.StringUtils;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -59,6 +68,9 @@ public class ExamPaperServiceImpl extends ServiceImpl<ExamPaperDao, ExamPaperEnt
     private ExamPaperDao examPaperDao;
 
     @Autowired
+    private ElasticSearchUtils esUtils;
+
+    @Autowired
     private ThreadPoolExecutor threadPoolExecutor;
 
     @Override
@@ -80,6 +92,48 @@ public class ExamPaperServiceImpl extends ServiceImpl<ExamPaperDao, ExamPaperEnt
                 .orderByAsc(ExamPaperEntity::getId)
                 .last("limit 5");
         return list(wrapper);
+    }
+
+    @Override
+    public ExamPaperSearchVo searchDtoByKeyword(SearchPageParam searchParam) {
+        SearchSourceBuilder query = new SearchSourceBuilder();
+
+        final String NAME = "name";
+
+        // 匹配
+        query.query(QueryBuilders.matchQuery(NAME, searchParam.getKeyword()));
+
+        // 分页
+        query.from((searchParam.getPageNum() - 1) * searchParam.getPageSize());
+        query.size(searchParam.getPageSize());
+
+        // 高亮
+        HighlightBuilder highlightBuilder = new HighlightBuilder()
+                .field(NAME)
+                .preTags("<span style='background-color: #f1a532'>")
+                .postTags("</span>");
+        query.highlighter(highlightBuilder);
+
+        // 封装结果
+        ExamPaperSearchVo vo = new ExamPaperSearchVo();
+        SearchHits searchHits = esUtils.pageDocument(ElasticSearchConstants.EXAMPAPER_INDEX, query);
+        vo.setTotal(searchHits.getTotalHits().value);
+        SearchHit[] hits = searchHits.getHits();
+        if (hits != null && hits.length > 0) {
+            List<SearchExamPaperDto> data = Arrays.stream(hits)
+                    .map(hit -> {
+                        SearchExamPaperDto dto = JSON.parseObject(hit.getSourceAsString(), SearchExamPaperDto.class);
+                        HighlightField highlightName = hit.getHighlightFields().get(NAME);
+                        if (highlightName != null) {
+                            dto.setName(highlightName.fragments()[0].string());
+                        }
+                        return dto;
+                    })
+                    .collect(Collectors.toList());
+            vo.setRows(data);
+        }
+
+        return vo;
     }
 
     @Override
@@ -148,6 +202,11 @@ public class ExamPaperServiceImpl extends ServiceImpl<ExamPaperDao, ExamPaperEnt
         examPaperEntity.setCreateBy(userId);
         examPaperEntity.setFrameTextContentId(examPaperContent.getId());
         save(examPaperEntity);
+
+        // 保存到 es
+        SearchExamPaperDto searchExamPaperDto = new SearchExamPaperDto().convertFrom(examPaperEntity);
+        searchExamPaperDto.setCreateTime(new Date());
+        esUtils.createDocument(ElasticSearchConstants.EXAMPAPER_INDEX, examPaperEntity.getId(), searchExamPaperDto);
     }
 
     @Override
@@ -219,6 +278,10 @@ public class ExamPaperServiceImpl extends ServiceImpl<ExamPaperDao, ExamPaperEnt
         TextContentEntity textContentEntity = buildTextContentByExamPaperTitleItemVo(examPaper.getTitleItems());
         textContentEntity.setId(examPaperLast.getFrameTextContentId());
         textContentService.updateById(textContentEntity);
+
+        // 更新 es
+        SearchExamPaperDto searchExamPaperDto = new SearchExamPaperDto().convertFrom(examPaperLast);
+        esUtils.updateDocument(ElasticSearchConstants.EXAMPAPER_INDEX, examPaperLast.getId(), searchExamPaperDto);
     }
 
     @Override
@@ -239,13 +302,35 @@ public class ExamPaperServiceImpl extends ServiceImpl<ExamPaperDao, ExamPaperEnt
         return update(wrapper);
     }
 
+    @Transactional
+    @Override
+    public boolean removeToAllByIds(List<Long> ids) {
+        LambdaQueryWrapper<ExamPaperEntity> wrapper = Wrappers.lambdaQuery(ExamPaperEntity.class)
+                .select(ExamPaperEntity::getTaskExamId)
+                .in(ExamPaperEntity::getId, ids);
+        List<ExamPaperEntity> entities = list(wrapper);
+        entities.forEach(entity -> {
+            if (entity != null && entity.getTaskExamId() != null) {
+                throw new ServiceException("试卷已与任务关联，不能删除");
+            }
+        });
+
+        // 删除 es
+        boolean success = esUtils.deleteBatchDocument(ElasticSearchConstants.EXAMPAPER_INDEX, ids);
+        if (!success) {
+            throw new ServiceException("删除试卷失败");
+        }
+
+        return removeByIds(ids);
+    }
+
     /**
      * 构建随机试卷 TitleItemVo & 统计分数、题目数量
      */
     private ExamPaperTitleItemVo buildRandomTitleItemVo(QuestionTypeEnum typeEnum,
-                                                              List<QuestionVo> vos,
-                                                              AtomicInteger score,
-                                                              AtomicInteger questionCount) {
+                                                        List<QuestionVo> vos,
+                                                        AtomicInteger score,
+                                                        AtomicInteger questionCount) {
         ExamPaperTitleItemVo titleItemVo = new ExamPaperTitleItemVo();
         titleItemVo.setName(typeEnum.getName());
         titleItemVo.setQuestionItems(vos);

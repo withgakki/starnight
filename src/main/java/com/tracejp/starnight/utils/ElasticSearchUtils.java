@@ -18,6 +18,7 @@ import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.CreateIndexResponse;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -102,7 +103,9 @@ public class ElasticSearchUtils {
         UpdateRequest request = new UpdateRequest().index(index).id(id).doc(doc, XContentType.JSON);
         try {
             UpdateResponse response = esClient.update(request, RequestOptions.DEFAULT);
-            return response.getResult() == DocWriteResponse.Result.UPDATED;
+            // 更新成功或者无变化
+            return response.getResult() == DocWriteResponse.Result.UPDATED ||
+                    response.getResult() == DocWriteResponse.Result.NOOP;
         } catch (IOException e) {
             e.printStackTrace();
             return false;
@@ -186,6 +189,24 @@ public class ElasticSearchUtils {
         } catch (IOException e) {
             e.printStackTrace();
             return new ArrayList<>();
+        }
+    }
+
+    /**
+     * 分页查询文档
+     * @param index 索引名
+     * @param query 查询条件
+     * @return 查询结果
+     */
+    public SearchHits pageDocument(String index, SearchSourceBuilder query) {
+        SearchRequest request = new SearchRequest(index);
+        request.source(query);
+        try {
+            SearchResponse response = esClient.search(request, RequestOptions.DEFAULT);
+            return response.getHits();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
         }
     }
 

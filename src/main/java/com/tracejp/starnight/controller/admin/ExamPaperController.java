@@ -87,7 +87,7 @@ public class ExamPaperController extends BaseController {
      */
     @DeleteMapping("/{ids}")
     public AjaxResult delete(@PathVariable List<Long> ids) {
-        examPaperService.removeByIds(ids);
+        examPaperService.removeToAllByIds(ids);
         return success();
     }
 

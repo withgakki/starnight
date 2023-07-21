@@ -5,7 +5,7 @@ import com.tracejp.starnight.entity.UserEntity;
 import com.tracejp.starnight.entity.base.AjaxResult;
 import com.tracejp.starnight.entity.base.TableDataInfo;
 import com.tracejp.starnight.entity.dto.UserDto;
-import com.tracejp.starnight.entity.dto.UserSearchEsDto;
+import com.tracejp.starnight.entity.dto.SearchUserDto;
 import com.tracejp.starnight.entity.enums.UserStatusEnum;
 import com.tracejp.starnight.entity.param.UserEditParam;
 import com.tracejp.starnight.service.UserService;
@@ -59,7 +59,7 @@ public class UserController extends BaseController {
      */
     @GetMapping("/search")
     public AjaxResult search(String keyword) {
-        List<UserSearchEsDto> list = userService.searchDtoByKeyword(keyword);
+        List<SearchUserDto> list = userService.searchDtoByKeyword(keyword);
         return success(list);
     }
 

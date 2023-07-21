@@ -3,7 +3,9 @@ package com.tracejp.starnight.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tracejp.starnight.entity.ExamPaperEntity;
 import com.tracejp.starnight.entity.param.RandomExamPaperParams;
+import com.tracejp.starnight.entity.param.SearchPageParam;
 import com.tracejp.starnight.entity.vo.ExamPaperVo;
+import com.tracejp.starnight.entity.vo.student.ExamPaperSearchVo;
 
 import java.util.List;
 
@@ -27,6 +29,11 @@ public interface ExamPaperService extends IService<ExamPaperEntity> {
      * 随机获取普通试卷（除任务试卷）
      */
     List<ExamPaperEntity> listStudentIndexPage(Integer level, Integer type);
+
+    /**
+     * 通过关键字搜索
+     */
+    ExamPaperSearchVo searchDtoByKeyword(SearchPageParam searchParam);
 
     /**
      * 通过 id 获取 vo
@@ -57,6 +64,11 @@ public interface ExamPaperService extends IService<ExamPaperEntity> {
      * 通过试卷ids 设置taskId 为null
      */
     boolean setTaskIdNullByIds(List<Long> ids);
+
+    /**
+     * 删除 - 级联删除
+     */
+    boolean removeToAllByIds(List<Long> ids);
 
 }
 

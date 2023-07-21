@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tracejp.starnight.constants.ElasticSearchConstants;
 import com.tracejp.starnight.dao.UserDao;
 import com.tracejp.starnight.entity.UserEntity;
-import com.tracejp.starnight.entity.dto.UserSearchEsDto;
+import com.tracejp.starnight.entity.dto.SearchUserDto;
 import com.tracejp.starnight.exception.ServiceException;
 import com.tracejp.starnight.service.UserService;
 import com.tracejp.starnight.utils.ElasticSearchUtils;
@@ -47,20 +47,24 @@ public class UserServiceImpl extends ServiceImpl<UserDao, UserEntity> implements
     }
 
     @Override
-    public List<UserSearchEsDto> searchDtoByKeyword(String keyword) {
+    public List<SearchUserDto> searchDtoByKeyword(String keyword) {
         if (StringUtils.isEmpty(keyword)) {
             return new ArrayList<>();
         }
 
         // 构建查询条件
+        final String USER_NAME = "userName";
+        final String REAL_NAME = "realName";
+        final String PHONE = "phone";
         SearchSourceBuilder queryParams = new SearchSourceBuilder();
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery()
-                .should(QueryBuilders.fuzzyQuery("userName", keyword))
-                .should(QueryBuilders.fuzzyQuery("realName", keyword))
-                .should(QueryBuilders.fuzzyQuery("phone", keyword));
+                .should(QueryBuilders.fuzzyQuery(USER_NAME, keyword))
+                .should(QueryBuilders.fuzzyQuery(REAL_NAME, keyword))
+                .should(QueryBuilders.fuzzyQuery(PHONE, keyword));
         queryParams.query(boolQueryBuilder);
+        queryParams.size(10);
 
-        return esUtils.listDocument(ElasticSearchConstants.USER_INDEX, queryParams, UserSearchEsDto.class);
+        return esUtils.listDocument(ElasticSearchConstants.USER_INDEX, queryParams, SearchUserDto.class);
     }
 
     @Override
@@ -70,22 +74,22 @@ public class UserServiceImpl extends ServiceImpl<UserDao, UserEntity> implements
 
     @Transactional
     @Override
-    public boolean saveToAll(UserEntity user) {
+    public void saveToAll(UserEntity user) {
+        this.save(user);
+
         // 保存 es
-        UserSearchEsDto dto = new UserSearchEsDto().convertFrom(user);
+        SearchUserDto dto = new SearchUserDto().convertFrom(user);
         boolean success = esUtils.createDocument(ElasticSearchConstants.USER_INDEX, user.getId(), dto);
         if (!success) {
             throw new ServiceException("用户信息保存至 elastic search 失败");
         }
-
-        return this.save(user);
     }
 
     @Transactional
     @Override
     public boolean updateToAll(UserEntity user) {
         // 更新 es
-        UserSearchEsDto dto = new UserSearchEsDto().convertFrom(user);
+        SearchUserDto dto = new SearchUserDto().convertFrom(user);
         boolean success = esUtils.updateDocument(ElasticSearchConstants.USER_INDEX, user.getId(), dto);
         if (!success) {
             throw new ServiceException("用户信息更新至 elastic search 失败");

@@ -5,8 +5,10 @@ import com.tracejp.starnight.entity.ExamPaperEntity;
 import com.tracejp.starnight.entity.base.AjaxResult;
 import com.tracejp.starnight.entity.base.TableDataInfo;
 import com.tracejp.starnight.entity.enums.ExamPaperTypeEnum;
+import com.tracejp.starnight.entity.param.SearchPageParam;
 import com.tracejp.starnight.entity.vo.ExamPaperVo;
 import com.tracejp.starnight.entity.vo.student.ExamPaperIndexVo;
+import com.tracejp.starnight.entity.vo.student.ExamPaperSearchVo;
 import com.tracejp.starnight.service.ExamPaperService;
 import com.tracejp.starnight.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +54,15 @@ public class ExamPaperController extends BaseController {
         startPage();
         List<ExamPaperEntity> list = examPaperService.listPage(examPaper);
         return getDataTable(list);
+    }
+
+    /**
+     * 搜索试卷
+     */
+    @GetMapping("/search")
+    public AjaxResult search(SearchPageParam searchParam) {
+        ExamPaperSearchVo list = examPaperService.searchDtoByKeyword(searchParam);
+        return success(list);
     }
 
     /**

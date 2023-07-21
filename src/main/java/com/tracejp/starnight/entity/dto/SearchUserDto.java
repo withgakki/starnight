@@ -13,7 +13,7 @@ import lombok.Data;
  * @since 2023/7/20 10:58
  */
 @Data
-public class UserSearchEsDto implements IOutputConverter<UserSearchEsDto, UserEntity> {
+public class SearchUserDto implements IOutputConverter<SearchUserDto, UserEntity> {
 
     private static final long serialVersionUID = 1L;
 

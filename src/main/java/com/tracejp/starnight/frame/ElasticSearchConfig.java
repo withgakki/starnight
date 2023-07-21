@@ -43,10 +43,15 @@ public class ElasticSearchConfig {
      */
     private void initGlobalIndex(RestHighLevelClient client) throws IOException {
         // 用户索引
-        GetIndexRequest hasUserIndex = new GetIndexRequest(ElasticSearchConstants.USER_INDEX);
-        if (!client.indices().exists(hasUserIndex, RequestOptions.DEFAULT)) {
+        if (!client.indices().exists(new GetIndexRequest(ElasticSearchConstants.USER_INDEX), RequestOptions.DEFAULT)) {
             CreateIndexRequest userIndex = new CreateIndexRequest(ElasticSearchConstants.USER_INDEX)
                     .mapping(ElasticSearchConstants.USER_INDEX_MAPPING, XContentType.JSON);
+            client.indices().create(userIndex, RequestOptions.DEFAULT);
+        }
+        // 试卷索引
+        if (!client.indices().exists(new GetIndexRequest(ElasticSearchConstants.EXAMPAPER_INDEX), RequestOptions.DEFAULT)) {
+            CreateIndexRequest userIndex = new CreateIndexRequest(ElasticSearchConstants.EXAMPAPER_INDEX)
+                    .mapping(ElasticSearchConstants.EXAMPAPER_INDEX_MAPPING, XContentType.JSON);
             client.indices().create(userIndex, RequestOptions.DEFAULT);
         }
     }
