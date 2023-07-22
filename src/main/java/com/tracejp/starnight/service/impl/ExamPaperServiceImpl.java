@@ -225,8 +225,10 @@ public class ExamPaperServiceImpl extends ServiceImpl<ExamPaperDao, ExamPaperEnt
             List<QuestionVo> vos = questionService.randomExtractQuestionVos(QuestionTypeEnum.SingleChoice.getCode(),
                     randomParams.getSingleChoice(), subject.getId(), randomParams.getDifficult()
             );
-            ExamPaperTitleItemVo titleItemVo = buildRandomTitleItemVo(QuestionTypeEnum.SingleChoice, vos, score, questionCount);
-            titleItemVos.add(titleItemVo);
+            if (!CollectionUtils.isEmpty(vos)) {
+                ExamPaperTitleItemVo titleItemVo = buildRandomTitleItemVo(QuestionTypeEnum.SingleChoice, vos, score, questionCount);
+                titleItemVos.add(titleItemVo);
+            }
         }, threadPoolExecutor);
 
         // 构建多选
@@ -234,8 +236,10 @@ public class ExamPaperServiceImpl extends ServiceImpl<ExamPaperDao, ExamPaperEnt
             List<QuestionVo> vos = questionService.randomExtractQuestionVos(QuestionTypeEnum.MultipleChoice.getCode(),
                     randomParams.getMultipleChoice(), subject.getId(), randomParams.getDifficult()
             );
-            ExamPaperTitleItemVo titleItemVo = buildRandomTitleItemVo(QuestionTypeEnum.MultipleChoice, vos, score, questionCount);
-            titleItemVos.add(titleItemVo);
+            if (!CollectionUtils.isEmpty(vos)) {
+                ExamPaperTitleItemVo titleItemVo = buildRandomTitleItemVo(QuestionTypeEnum.MultipleChoice, vos, score, questionCount);
+                titleItemVos.add(titleItemVo);
+            }
         }, threadPoolExecutor);
 
         // 构建判断
@@ -243,8 +247,10 @@ public class ExamPaperServiceImpl extends ServiceImpl<ExamPaperDao, ExamPaperEnt
             List<QuestionVo> vos = questionService.randomExtractQuestionVos(QuestionTypeEnum.TrueFalse.getCode(),
                     randomParams.getJudgeChoice(), subject.getId(), randomParams.getDifficult()
             );
-            ExamPaperTitleItemVo titleItemVo = buildRandomTitleItemVo(QuestionTypeEnum.TrueFalse, vos, score, questionCount);
-            titleItemVos.add(titleItemVo);
+            if (!CollectionUtils.isEmpty(vos)) {
+                ExamPaperTitleItemVo titleItemVo = buildRandomTitleItemVo(QuestionTypeEnum.TrueFalse, vos, score, questionCount);
+                titleItemVos.add(titleItemVo);
+            }
         }, threadPoolExecutor);
 
         CompletableFuture.allOf(singleChoiceFuture, multipleChoiceFuture, trueFalseFuture).join();

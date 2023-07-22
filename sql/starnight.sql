@@ -203,6 +203,8 @@ CREATE TABLE `t_user`  (
                          PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户表' ROW_FORMAT = COMPACT;
 
+INSERT INTO `t_user` (`id`, `create_time`, `update_time`, `del_flag`, `user_uuid`, `user_name`, `password`, `real_name`, `age`, `sex`, `birth_day`, `user_level`, `phone`, `role`, `status`, `avatar_path`, `last_active_time`, `wx_open_id`) VALUES (1, '2023-07-21 13:03:10', '2023-06-01 00:00:00', b'0', '52045f5f-a13f-4ccc-93dd-f7ee8270ad4c', 'admin', '$2a$10$cATvZHyNR2BvFHvi9JEXLeXvg7EXSCMUn4BfSdGo94PQV9.e.uv2C', '管理员', NULL, NULL, NULL, NULL, NULL, 3, 1, NULL, NULL, NULL);
+
 -- ----------------------------
 -- Table structure for t_user_event_log
 -- ----------------------------
