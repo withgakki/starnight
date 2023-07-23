@@ -90,7 +90,7 @@ public class QuestionController extends BaseController {
      */
     @DeleteMapping("/{ids}")
     public AjaxResult delete(@PathVariable List<Long> ids) {
-        questionService.removeByIds(ids);
+        questionService.removeCheckByIds(ids);
         return success();
     }
 

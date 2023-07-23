@@ -52,5 +52,10 @@ public interface QuestionService extends IService<QuestionEntity> {
      */
     String gptQuestionAnalyze(Long id);
 
+    /**
+     * 删除题目 检查是否有试卷引用
+     */
+    void removeCheckByIds(List<Long> ids);
+
 }
 

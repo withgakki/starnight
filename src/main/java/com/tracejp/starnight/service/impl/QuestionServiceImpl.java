@@ -1,5 +1,7 @@
 package com.tracejp.starnight.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tracejp.starnight.constants.CacheConstants;
 import com.tracejp.starnight.dao.QuestionDao;
@@ -194,6 +196,20 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionDao, QuestionEntity
         String prompts = buildGptPromptByQuestionAnalyze(question, questionPo);
         String result = gptHandler.chat(prompts);
         return result.replaceAll("\n", "<br>");
+    }
+
+    @Override
+    public void removeCheckByIds(List<Long> ids) {
+        // 查状态
+        LambdaQueryWrapper<QuestionEntity> wrapper = Wrappers.lambdaQuery(QuestionEntity.class)
+                .eq(QuestionEntity::getStatus, QuestionStatusEnum.PUBLISH.getCode())
+                .in(QuestionEntity::getId, ids);
+        int count = count(wrapper);
+        if (count > 0) {
+            throw new ServiceException("已被试卷引用的题目不可删除");
+        }
+
+        removeByIds(ids);
     }
 
     /**

@@ -6,13 +6,12 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tracejp.starnight.constants.ElasticSearchConstants;
+import com.tracejp.starnight.dao.ExamPaperAnswerDao;
 import com.tracejp.starnight.dao.ExamPaperDao;
-import com.tracejp.starnight.entity.ExamPaperEntity;
-import com.tracejp.starnight.entity.QuestionEntity;
-import com.tracejp.starnight.entity.SubjectEntity;
-import com.tracejp.starnight.entity.TextContentEntity;
+import com.tracejp.starnight.entity.*;
 import com.tracejp.starnight.entity.dto.SearchExamPaperDto;
 import com.tracejp.starnight.entity.enums.ExamPaperTypeEnum;
+import com.tracejp.starnight.entity.enums.QuestionStatusEnum;
 import com.tracejp.starnight.entity.enums.QuestionTypeEnum;
 import com.tracejp.starnight.entity.param.RandomExamPaperParams;
 import com.tracejp.starnight.entity.param.SearchPageParam;
@@ -23,10 +22,7 @@ import com.tracejp.starnight.entity.vo.ExamPaperVo;
 import com.tracejp.starnight.entity.vo.QuestionVo;
 import com.tracejp.starnight.entity.vo.student.ExamPaperSearchVo;
 import com.tracejp.starnight.exception.ServiceException;
-import com.tracejp.starnight.service.ExamPaperService;
-import com.tracejp.starnight.service.QuestionService;
-import com.tracejp.starnight.service.SubjectService;
-import com.tracejp.starnight.service.TextContentService;
+import com.tracejp.starnight.service.*;
 import com.tracejp.starnight.utils.BeanUtils;
 import com.tracejp.starnight.utils.ElasticSearchUtils;
 import com.tracejp.starnight.utils.ScoreUtils;
@@ -66,6 +62,9 @@ public class ExamPaperServiceImpl extends ServiceImpl<ExamPaperDao, ExamPaperEnt
 
     @Autowired
     private ExamPaperDao examPaperDao;
+
+    @Autowired
+    private ExamPaperAnswerDao examPaperAnswerDao;
 
     @Autowired
     private ElasticSearchUtils esUtils;
@@ -196,6 +195,18 @@ public class ExamPaperServiceImpl extends ServiceImpl<ExamPaperDao, ExamPaperEnt
         }
         textContentService.save(examPaperContent);
 
+        // 修改题目状态
+        List<ExamPaperTitleItemVo> titleItems = examPaper.getTitleItems();
+        List<QuestionEntity> qEntities = titleItems.stream().flatMap(item -> item.getQuestionItems().stream()
+                        .map(q -> {
+                            QuestionEntity questionEntity = new QuestionEntity();
+                            questionEntity.setId(q.getId());
+                            questionEntity.setStatus(QuestionStatusEnum.PUBLISH.getCode());
+                            return questionEntity;
+                        }))
+                .collect(Collectors.toList());
+        questionService.updateBatchById(qEntities);
+
         // 保存试卷基本信息
         ExamPaperEntity examPaperEntity = new ExamPaperEntity();
         setPropertiesFromVo(examPaper, examPaperEntity);
@@ -312,7 +323,6 @@ public class ExamPaperServiceImpl extends ServiceImpl<ExamPaperDao, ExamPaperEnt
     @Override
     public boolean removeToAllByIds(List<Long> ids) {
         LambdaQueryWrapper<ExamPaperEntity> wrapper = Wrappers.lambdaQuery(ExamPaperEntity.class)
-                .select(ExamPaperEntity::getTaskExamId)
                 .in(ExamPaperEntity::getId, ids);
         List<ExamPaperEntity> entities = list(wrapper);
         entities.forEach(entity -> {
@@ -326,6 +336,31 @@ public class ExamPaperServiceImpl extends ServiceImpl<ExamPaperDao, ExamPaperEnt
         if (!success) {
             throw new ServiceException("删除试卷失败");
         }
+
+        // 重置题目状态
+        if (!CollectionUtils.isEmpty(entities)) {
+            List<Long> textIds = entities.stream().map(ExamPaperEntity::getFrameTextContentId)
+                    .collect(Collectors.toList());
+            List<TextContentEntity> textEntities = textContentService.listByIds(textIds);
+            List<QuestionEntity> questionUpdates = textEntities.stream().flatMap(text -> {
+                List<ExamPaperTitleItemPo> contentArray = text.getContentArray(ExamPaperTitleItemPo.class);
+                if (CollectionUtils.isEmpty(contentArray)) {
+                    return null;
+                }
+                return contentArray.stream().flatMap(item -> item.getQuestionItems().stream().map(q -> {
+                    QuestionEntity question = new QuestionEntity();
+                    question.setId(q.getId());
+                    question.setStatus(QuestionStatusEnum.OK.getCode());
+                    return question;
+                }));
+            }).collect(Collectors.toList());
+            questionService.updateBatchById(questionUpdates);
+        }
+
+        // 删答卷
+        LambdaQueryWrapper<ExamPaperAnswerEntity> answerWrapper = Wrappers.lambdaQuery(ExamPaperAnswerEntity.class)
+                .in(ExamPaperAnswerEntity::getExamPaperId, ids);
+        examPaperAnswerDao.delete(answerWrapper);
 
         return removeByIds(ids);
     }
