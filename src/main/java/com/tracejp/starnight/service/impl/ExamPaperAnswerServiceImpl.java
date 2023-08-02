@@ -29,7 +29,6 @@ import org.springframework.util.CollectionUtils;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -39,11 +38,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service("examPaperAnswerService")
 public class ExamPaperAnswerServiceImpl extends ServiceImpl<ExamPaperAnswerDao, ExamPaperAnswerEntity> implements ExamPaperAnswerService {
-
-    /**
-     * 智能判卷 题目批改 重试次数
-     */
-    private static final Integer AUTO_JUDGE_MAX_RETRY = 3;
 
     @Autowired
     private ExamPaperService examPaperService;
@@ -426,10 +420,10 @@ public class ExamPaperAnswerServiceImpl extends ServiceImpl<ExamPaperAnswerDao, 
      * 通过 原始问题、答案、用户 构造问题答案实体
      */
     private CompletableFuture<ExamPaperQuestionAnswerEntity> buildAnswerQuestionEntityFormVo(QuestionEntity question,
-                                                                          ExamPaperAnswerSubmitItemVo questionAnswer,
-                                                                          ExamPaperEntity examPaperEntity,
-                                                                          UserEntity user,
-                                                                          Integer itemOrder) {
+                                                                                             ExamPaperAnswerSubmitItemVo questionAnswer,
+                                                                                             ExamPaperEntity examPaperEntity,
+                                                                                             UserEntity user,
+                                                                                             Integer itemOrder) {
         return CompletableFuture.supplyAsync(() -> {
             ExamPaperQuestionAnswerEntity questionAnswerEntity = new ExamPaperQuestionAnswerEntity();
             if (question == null) {
@@ -542,67 +536,49 @@ public class ExamPaperAnswerServiceImpl extends ServiceImpl<ExamPaperAnswerDao, 
 
     /**
      * 智能批改题目（填空、简答）
-     * - 自旋重试 AUTO_JUDGE_MAX_RETRY 次，重试失败默认批改为 0 分
      */
     private CompletableFuture<Void> updateQuestionAnswerPropertiesByAutoJudge(ExamPaperQuestionAnswerEntity questionAnswer,
                                                                               QuestionEntity question) {
         return CompletableFuture.runAsync(() -> {
-            // 自旋重试
-            AtomicInteger retry = new AtomicInteger(0);
-            while (true) {
-                try {
-                    // 查出答案
-                    TextContentEntity textContent = textContentService.getById(questionAnswer.getTextContentId());
-                    String answer = textContent.getContent(String.class);
-                    if (answer == null) {
-                        throw new ServiceException("题目不存在");
-                    }
+            // 查出答案
+            TextContentEntity textContent = textContentService.getById(questionAnswer.getTextContentId());
+            String answer = textContent.getContent(String.class);
+            if (answer == null) {
+                throw new ServiceException("题目不存在");
+            }
 
-                    // 批改
-                    QuestionTypeEnum questionTypeEnum = QuestionTypeEnum.fromCode(question.getQuestionType());
-                    switch (questionTypeEnum) {
-                        case GapFilling:
-                            int rightCount = 0;
-                            int score = 0;
-                            TextContentEntity gapTextContent = textContentService.getById(question.getInfoTextContentId());
-                            QuestionPo questionPo = gapTextContent.getContent(QuestionPo.class);
-                            List<QuestionItemPo> origin = questionPo.getQuestionItemPos();
-                            List<String> answerArray = ArrayStringUtils.contentToArray(answer);
-                            for (int i = 0; i < origin.size(); i++) {
-                                QuestionItemPo originItem = origin.get(i);
-                                String answerItem = answerArray.get(i);
-                                if (StringUtils.isNotEmpty(answerItem)) {
-                                    Double similarity = nlpHandler.simnet(HtmlUtils.clear(originItem.getContent()), answerItem);
-                                    if (similarity >= 0.8) {
-                                        rightCount++;
-                                        score += ScoreUtils.scoreFromVM(originItem.getScore());
-                                    }
-                                }
+            // 批改
+            QuestionTypeEnum questionTypeEnum = QuestionTypeEnum.fromCode(question.getQuestionType());
+            switch (questionTypeEnum) {
+                case GapFilling:
+                    int rightCount = 0;
+                    int score = 0;
+                    TextContentEntity gapTextContent = textContentService.getById(question.getInfoTextContentId());
+                    QuestionPo questionPo = gapTextContent.getContent(QuestionPo.class);
+                    List<QuestionItemPo> origin = questionPo.getQuestionItemPos();
+                    List<String> answerArray = ArrayStringUtils.contentToArray(answer);
+                    for (int i = 0; i < origin.size(); i++) {
+                        QuestionItemPo originItem = origin.get(i);
+                        String answerItem = answerArray.get(i);
+                        if (StringUtils.isNotEmpty(answerItem)) {
+                            Double similarity = nlpHandler.simnet(HtmlUtils.clear(originItem.getContent()), answerItem);
+                            if (similarity >= 0.8) {
+                                rightCount++;
+                                score += ScoreUtils.scoreFromVM(originItem.getScore());
                             }
-                            questionAnswer.setCustomerScore(score);
-                            questionAnswer.setDoRight(rightCount == origin.size());
-                            return;
-                        case ShortAnswer:
-                            Double similarity = nlpHandler.simnet(answer, HtmlUtils.clear(question.getCorrect()));
-                            questionAnswer.setCustomerScore((int) (similarity * question.getScore()));
-                            questionAnswer.setDoRight(similarity >= 0.8);
-                            return;
-                        default:
-                            questionAnswer.setCustomerScore(0);
-                            questionAnswer.setDoRight(false);
-                            return;
+                        }
                     }
-
-                } catch (Exception e) {
-                    retry.incrementAndGet();
-                    if (retry.get() < AUTO_JUDGE_MAX_RETRY) {
-                        questionAnswer.setCustomerScore(0);
-                        questionAnswer.setDoRight(false);
-                        return;
-                    }
-                    log.error("智能批改题目异常: {}; 重试次数... ({}) / 最大重试次数({})",
-                            e.getMessage(), retry.get(), AUTO_JUDGE_MAX_RETRY);
-                }
+                    questionAnswer.setCustomerScore(score);
+                    questionAnswer.setDoRight(rightCount == origin.size());
+                    return;
+                case ShortAnswer:
+                    Double similarity = nlpHandler.simnet(answer, HtmlUtils.clear(question.getCorrect()));
+                    questionAnswer.setCustomerScore((int) (similarity * question.getScore()));
+                    questionAnswer.setDoRight(similarity >= 0.8);
+                    return;
+                default:
+                    questionAnswer.setCustomerScore(0);
+                    questionAnswer.setDoRight(false);
             }
         }, threadPoolExecutor);
     }
