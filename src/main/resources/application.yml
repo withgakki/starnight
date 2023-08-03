@@ -81,6 +81,11 @@ starnight:
     app-id: 123456
     api-key: 123456
     secret-key: 123456
+  # ali-ocr
+  ocr:
+    access-key-id: 123456
+    access-key-secret: 123456
+    endpoint: ocr-api.cn-hangzhou.aliyuncs.com
   # 自定义线程池
   thread:
     pool:

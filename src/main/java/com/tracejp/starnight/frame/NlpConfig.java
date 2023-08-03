@@ -20,7 +20,7 @@ public class NlpConfig {
     @Configuration
     @EnableConfigurationProperties(BaiduNlpConfigProperties.class)
     @ConditionalOnClass(BaiduNlpHandler.class)
-    static class BaiduNlpConfig {
+    public static class BaiduNlpConfig {
 
         @Bean
         public AipNlp aipNlp(BaiduNlpConfigProperties properties) {

@@ -28,7 +28,7 @@ public class FileConfig {
     @Configuration
     @EnableConfigurationProperties(FileConfigProperties.class)
     @ConditionalOnClass(MinioFileHandler.class)
-    static class MinioFileConfig {
+    public static class MinioFileConfig {
 
         @Bean
         public AmazonS3 amazonS3Client(FileConfigProperties properties) {
