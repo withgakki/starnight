@@ -19,6 +19,9 @@ public class TextUtils {
      * 相似度计算 - TF-IDF算法
      */
     public static double computeTFIDF(String s1, String s2) {
+        if (StringUtils.isEmpty(s1) || StringUtils.isEmpty(s2)) {
+            return 0.0;
+        }
         Map<String, Integer> wordFreq1 = computeTermFrequency(s1);
         Map<String, Integer> wordFreq2 = computeTermFrequency(s2);
 

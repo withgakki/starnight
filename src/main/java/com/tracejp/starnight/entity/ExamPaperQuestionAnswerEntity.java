@@ -83,6 +83,11 @@ public class ExamPaperQuestionAnswerEntity {
     private String answer;
 
     /**
+     * 做题人答案图片 - 简答
+     */
+    private String answerImage;
+
+    /**
      * 做题人答案 - 填空、简答
      * 参考 QuestionTypeEnum#needSaveTextContent
      */

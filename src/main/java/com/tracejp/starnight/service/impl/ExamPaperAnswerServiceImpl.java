@@ -18,6 +18,7 @@ import com.tracejp.starnight.entity.vo.ExamPaperAnswerSubmitVo;
 import com.tracejp.starnight.entity.vo.ExamPaperAnswerVo;
 import com.tracejp.starnight.exception.ServiceException;
 import com.tracejp.starnight.handler.nlp.INlpHandler;
+import com.tracejp.starnight.handler.ocr.IOcrHandler;
 import com.tracejp.starnight.service.*;
 import com.tracejp.starnight.utils.*;
 import lombok.extern.slf4j.Slf4j;
@@ -59,6 +60,9 @@ public class ExamPaperAnswerServiceImpl extends ServiceImpl<ExamPaperAnswerDao, 
 
     @Autowired
     private INlpHandler nlpHandler;
+
+    @Autowired
+    private IOcrHandler ocrHandler;
 
     @Autowired
     private ThreadPoolExecutor threadPoolExecutor;
@@ -521,6 +525,11 @@ public class ExamPaperAnswerServiceImpl extends ServiceImpl<ExamPaperAnswerDao, 
                 break;
             // 简答：得分为答案相似度 * 总分
             case ShortAnswer:
+                if (StringUtils.isNotEmpty(questionAnswer.getContentImage())) {  // 优先识别图片
+                    questionAnswerEntity.setAnswerImage(questionAnswer.getContentImage());
+                    String content = ocrHandler.ocr(questionAnswer.getContentImage());
+                    questionAnswer.setContent(content);
+                }
                 questionAnswerEntity.setAnswer(questionAnswer.getContent());
                 double similarity = TextUtils.computeTFIDF(questionAnswer.getContent(), HtmlUtils.clear(question.getCorrect()));
                 questionAnswerEntity.setCustomerScore((int) (similarity * question.getScore()));

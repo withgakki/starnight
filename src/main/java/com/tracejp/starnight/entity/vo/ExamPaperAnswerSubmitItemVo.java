@@ -39,6 +39,11 @@ public class ExamPaperAnswerSubmitItemVo {
     private List<String> contentArray;
 
     /**
+     * 答案图片地址：简答
+     */
+    private String contentImage;
+
+    /**
      * 当前答案得分
      */
     private String score;

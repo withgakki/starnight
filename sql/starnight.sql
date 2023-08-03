@@ -64,6 +64,7 @@ CREATE TABLE `t_exam_paper_question_answer`  (
                                                `question_score` int(11) NULL DEFAULT NULL COMMENT '题目原始分数',
                                                `question_text_content_id` bigint(11) NULL DEFAULT NULL COMMENT '问题内容',
                                                `answer` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '做题人答案',
+                                               `answer_image` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '做题人答案图片',
                                                `text_content_id` bigint(11) NULL DEFAULT NULL COMMENT '题目内容id',
                                                `do_right` bit(1) NULL DEFAULT NULL COMMENT '是否正确',
                                                `item_order` int(11) NULL DEFAULT NULL COMMENT '排序字段',

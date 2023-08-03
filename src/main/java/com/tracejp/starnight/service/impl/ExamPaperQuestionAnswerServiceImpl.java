@@ -115,6 +115,7 @@ public class ExamPaperQuestionAnswerServiceImpl extends ServiceImpl<ExamPaperQue
                 vo.setContentArray(ArrayStringUtils.contentToArray(content));
             } else {  // 简答
                 vo.setContent(content);
+                vo.setContentImage(questionAnswerEntity.getAnswerImage());
             }
         } else {
             vo.setContent(questionAnswerEntity.getAnswer());

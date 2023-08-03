@@ -17,6 +17,7 @@
         <result property="questionScore" column="question_score"/>
         <result property="questionTextContentId" column="question_text_content_id"/>
         <result property="answer" column="answer"/>
+        <result property="answerImage" column="answer_image"/>
         <result property="textContentId" column="text_content_id"/>
         <result property="doRight" column="do_right"/>
         <result property="itemOrder" column="item_order"/>

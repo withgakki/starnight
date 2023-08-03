@@ -16,10 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
 import java.net.URL;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * <p> minio 实现类 <p/>
@@ -67,7 +64,10 @@ public class MinioFileHandler implements IFileHandler {
             params.forEach(request::addRequestParameter);
         }
         URL url = fileClient.generatePresignedUrl(request);
-        return Collections.singletonMap("url", url.toString());
+        Map<String, String> resultMap = new HashMap<>();
+        resultMap.put("url", url.toString());
+        resultMap.put("preview", getFileUrl(fileKey, configProperties.getBucketName()));
+        return resultMap;
     }
 
     private String getFileUrl(String fileKey, String bucketName) {
