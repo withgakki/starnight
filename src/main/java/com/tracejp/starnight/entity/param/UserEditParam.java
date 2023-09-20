@@ -1,5 +1,6 @@
 package com.tracejp.starnight.entity.param;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.tracejp.starnight.entity.UserEntity;
 import com.tracejp.starnight.entity.base.IInputConverter;
 import lombok.Data;
@@ -48,6 +49,7 @@ public class UserEditParam implements IInputConverter<UserEntity> {
     /**
      * 生日
      */
+    @JsonFormat(locale="zh", timezone="GMT+8", pattern="yyyy-MM-dd")
     private Date birthDay;
 
     /**
